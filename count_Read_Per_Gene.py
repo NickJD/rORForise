@@ -15,13 +15,6 @@ with open(gff_file, "r") as file:
         predicted_reads_dict[read] = [start,stop,frame]
 
 
-
-
-
-
-
-
-
 bed_reads_dict = collections.defaultdict(dict)
 
 # Specify the path to the processed BED file
@@ -77,26 +70,39 @@ for cds_gene, reads in bed_reads_dict.items():
     print("Number of Reads: ",len(reads))
 
 
+NoP = 0
+Correct = 0
+NoCorrect = 0
+
 for gene, reads in bed_reads_dict.items():
     print(gene)
     for read in reads:
+        print(read)
         mapped_read_info = reads[read]
-        predicted_read = predicted_reads_dict[read]
-        if mapped_read_info[-1] == predicted_read[-1]:
+        try:
+            predicted_read = predicted_reads_dict[read]
+            #
             if mapped_read_info[2] == 'Left Edge':
                 gene_start = mapped_read_info[0]
-                read_start = mapped_read_info[3]
-                read_alignment_start = int(predicted_read[0])
-                if read_start + read_alignment_start == gene_start:
+                mapped_read_start = mapped_read_info[3]
+                if mapped_read_info[-1] == '-':
+                    mapped_read_length = mapped_read_info[4] - mapped_read_info[3]
+                    read_alignment_start = mapped_read_length+1 - int(predicted_read[1])
+                else:
+                    read_alignment_start = int(predicted_read[0])
+                if mapped_read_start + read_alignment_start == gene_start:
                     print("Found correct start")
+                    Correct +=1
                 else:
                     print("Not correct start")
-        else:
-            print("Wrong frame")
+                    NoCorrect +=1
+        except KeyError:
+            print("Read Not Predicted")
+            NoP +=1
 
-
-
-
+print(Correct)
+print(NoCorrect)
+print(NoP)
 
 
 

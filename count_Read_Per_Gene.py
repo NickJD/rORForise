@@ -71,13 +71,16 @@ for cds_gene, reads in bed_reads_dict.items():
 
 
 NoP = 0
-Correct = 0
-NoCorrect = 0
+L_Correct = 0
+L_NoCorrect = 0
+
+R_Correct = 0
+R_NoCorrect = 0
 
 for gene, reads in bed_reads_dict.items():
     print(gene)
     for read in reads:
-        print(read)
+        print(read) # cds_start,cds_end,alignment_position,read_start,read_end,alignment_start,alignment_end,frame
         mapped_read_info = reads[read]
         try:
             predicted_read = predicted_reads_dict[read]
@@ -92,16 +95,34 @@ for gene, reads in bed_reads_dict.items():
                     read_alignment_start = int(predicted_read[0])
                 if mapped_read_start + read_alignment_start == gene_start:
                     print("Found correct start")
-                    Correct +=1
+                    L_Correct +=1
                 else:
                     print("Not correct start")
-                    NoCorrect +=1
+                    L_NoCorrect +=1
+
+            if mapped_read_info[2] == 'Right Edge':
+                gene_start = mapped_read_info[0]
+                gene_stop = mapped_read_info[1]
+                mapped_read_stop = mapped_read_info[4]
+                mapped_read_start = mapped_read_info[3]
+                if mapped_read_info[-1] == '-':
+                    mapped_read_length = mapped_read_info[4] - mapped_read_info[3]
+                    read_alignment_stop = mapped_read_length+1 - int(predicted_read[0])
+                else:
+                    read_alignment_stop = int(predicted_read[1])
+                if mapped_read_start + read_alignment_stop == gene_stop: # and start is either 1/2/3? (+2 is to account for the condon size of 3)
+                    print("Found correct start")
+                    R_Correct +=1
+                else:
+                    print("Not correct start")
+                    R_NoCorrect +=1
+
         except KeyError:
             print("Read Not Predicted")
             NoP +=1
 
-print(Correct)
-print(NoCorrect)
+print(L_Correct)
+print(L_NoCorrect)
 print(NoP)
 
 

@@ -53,6 +53,7 @@ with open(bed_file, "r") as file:
 
 NoP = 0
 L_Correct = 0
+L_Alternative_Starts = collections.defaultdict(str) # Could just point per alt start codon but might expand on this later
 L_NoCorrect = 0
 
 R_Correct = 0
@@ -78,9 +79,14 @@ for gene, alignment_information in bed_reads_dict.items():
             if alignment_position == 'Left Edge':
                 print("Left Edge")
                 print(f'Expected gene start: {cds_start}, Read prediction start: {read_orf_start+read_start}, Mapped read start: {read_start}')
-                if read_start + read_orf_start == cds_start:
+                Left_read_start = read_start + read_orf_start
+                diff = cds_start - Left_read_start
+                if Left_read_start== cds_start:
                     print("Found correct start")
                     L_Correct += 1
+                elif diff % 3 == 0:
+                    print("Correct Frame predicted but wrong start codon selected")
+                    L_Alternative_Starts[compared_read] = Left_read_start
                 else:
                     print("Not correct start")
                     L_NoCorrect += 1
@@ -98,15 +104,15 @@ for gene, alignment_information in bed_reads_dict.items():
             elif alignment_position == 'Middle':
                 print("Middle")
                 mapped_read_length = read_end - read_start
-                if read_orf_start in [1,2,3] and read_orf_end in [mapped_read_length-1,mapped_read_length-2,mapped_read_length-3]: # Need to check if it needs to be more than -2 because the stop codon starts -3?
+                if read_orf_start in [1,2,3] and read_orf_end > mapped_read_length-3: # Need to check if it needs to be more than -2 because the stop codon starts -3?
                     ## Checking if predicted 'frame' is divisible and therefore 'in-frame' with genome cds_start
                     middle_read_start = read_start + read_orf_start - 1
                     diff = middle_read_start - cds_start
                     if diff % 3 == 0:
-                        print("Found correct position and frame")
+                        print("We think this is the correct Frame")
                         M_Correct += 1
                 else:
-                    print("Not correct position and/or frame")
+                    print("We do not think this is the correct Frame")
                     M_NoCorrect += 1
                 print(f'Mapped read start: {alignment_start}, Mapped read stop: {alignment_end}, Read prediction start: {read_orf_start}, Read prediction stop: {read_orf_end}, Correct frame: {cds_frame}') #The frame bit here is not finished
 

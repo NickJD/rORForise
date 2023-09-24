@@ -1,6 +1,42 @@
-import collections
+from collections import defaultdict
+def revCompIterative(watson): #Gets Reverse Complement
 
-predicted_reads_dict = collections.defaultdict()
+    complements = {'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C', 'N': 'N',
+                   'R': 'Y', 'Y': 'R', 'S': 'S', 'W': 'W', 'K': 'M',
+                   'M': 'K', 'V': 'B', 'B': 'V', 'H': 'D', 'D': 'H'}
+    watson = watson.upper()
+    watsonrev = watson[::-1]
+    crick = ""
+    for nt in watsonrev: # make dict to catch bad nts - if more than 1 output them to std error
+        try:
+            crick += complements[nt]
+        except KeyError:
+            crick += nt
+            #ns_nt[nt] +=1
+    return crick
+
+with open("Myco.fa", "r") as fasta_file:
+    sequence = "".join(line.strip() for line in fasta_file if not line.startswith(">"))
+rev_sequence = revCompIterative(sequence)
+seq_length = len(sequence)
+
+def getCodons(cds_frame,seq_length,sequence,rev_sequence,start,stop):
+    startCodon, stopCodon = None,None
+    if '-' in cds_frame:  # Reverse Compliment starts and stops adjusted
+        r_start = seq_length - stop
+        r_stop = seq_length - start
+        if not stop:
+            startCodon = rev_sequence[r_start:r_start + 3]
+        else:
+            stopCodon = rev_sequence[r_stop - 2:r_stop + 1]
+    elif '+' in cds_frame:
+        if not stop:
+            startCodon = sequence[start - 1:start + 2]
+        else:
+            stopCodon = sequence[stop - 3:stop]
+    return startCodon, stopCodon
+
+predicted_reads_dict = defaultdict()
 
 # Specify the path to the processed GFF file
 gff_file = "Myco_joined_readmode.gff"
@@ -14,7 +50,7 @@ with open(gff_file, "r") as file:
         gff_read_frame = fields[6]
         predicted_reads_dict[gff_read] = [gff_start, gff_stop, gff_read_frame]
 
-bed_reads_dict = collections.defaultdict(dict)
+bed_reads_dict = defaultdict(dict)
 
 # Specify the path to the processed BED file
 bed_file = "mapped_reads_05.bed"
@@ -48,17 +84,16 @@ with open(bed_file, "r") as file:
             bed_alignment_start = max(bed_read_start, bed_cds_start)
             bed_alignment_end = min(bed_read_end, bed_cds_end)
             # Store the read information in the dictionary
-            bed_reads_dict[bed_gene_id][bed_read_id] = (
-            bed_cds_start, bed_cds_end, bed_CDS_frame, bed_alignment_position, bed_read_start, bed_read_end,
-            bed_alignment_start, bed_alignment_end)
+            bed_reads_dict[bed_gene_id][bed_read_id] = (bed_cds_start, bed_cds_end, bed_CDS_frame, bed_alignment_position,
+                                                        bed_read_start, bed_read_end, bed_alignment_start, bed_alignment_end)
 
 NoP = 0
 L_Correct = 0
-L_Alternative_Starts = collections.defaultdict(
-    str)  # Could just point per alt start codon but might expand on this later
+L_Alternative_Starts = defaultdict(int)  # Could just point per alt start codon but might expand on this later
 L_NoCorrect = 0
 
 R_Correct = 0
+R_Alternative_Stops = defaultdict(int)
 R_NoCorrect = 0
 
 M_Correct = 0
@@ -66,15 +101,12 @@ M_NoCorrect = 0
 
 S_Correct = 0
 S_NoCorrect = 0
-S_Alternative_Starts = collections.defaultdict(str)
+S_Alternative_Starts = defaultdict(int)
 
 for gene, alignment_information in bed_reads_dict.items():
     print(f'Gene: {gene}')
     for compared_read in alignment_information:
-        if 'Chromosome-49188/1' in compared_read:
-            print(2)
-        print(
-            f'Read: {compared_read}')  # cds_start,cds_end,cd_frame, alignment_position,read_start,read_end,alignment_start,alignment_end
+        print(f'Read: {compared_read}')  # cds_start,cds_end,cd_frame, alignment_position,read_start,read_end,alignment_start,alignment_end
         mapped_read_info = alignment_information[compared_read]
         (cds_start, cds_end, cds_frame, alignment_position, read_start, read_end, alignment_start,
          alignment_end) = mapped_read_info
@@ -83,32 +115,44 @@ for gene, alignment_information in bed_reads_dict.items():
         try:
             predicted_read = predicted_reads_dict[compared_read]
             (read_orf_start, read_orf_end, read_orf_frame) = predicted_read
-            print(
-                f'Predicted ORF start: {read_orf_start}, Predicted ORF end: {read_orf_end}, Predicted ORF mapping frame to CDS Gene: {read_orf_frame}')
+            print(f'Predicted ORF start: {read_orf_start}, Predicted ORF end: {read_orf_end}, Predicted ORF mapping frame to CDS Gene: {read_orf_frame}')
 
             if alignment_position == 'Left Edge':
                 print("Left Edge")
-                print(
-                    f'Expected gene start: {cds_start}, Read prediction start: {read_orf_start + read_start}, Mapped read start: {read_start}')
-                Left_read_start = read_start + read_orf_start - 1
-                diff = cds_start - Left_read_start
-                if Left_read_start == cds_start:  # if diff == 0
+                print(f'Expected gene start: {cds_start}, Read prediction start: {read_orf_start + read_start}, Mapped read start: {read_start}')
+                Left_read_orf_start = read_start + read_orf_start - 1
+                diff = cds_start - Left_read_orf_start
+                if Left_read_orf_start == cds_start:  # if diff == 0
                     print("Found correct start")
                     L_Correct += 1
                 elif diff % 3 == 0:
+                    # Function to append 1 to subkey
                     print("Correct Frame predicted but wrong start codon selected")
-                    L_Alternative_Starts[compared_read] = diff  # Left_read_start
+                    cds_start_codon = getCodons(cds_frame, seq_length, sequence, rev_sequence, cds_start, None)
+                    orf_start_codon = getCodons(cds_frame, seq_length, sequence, rev_sequence, Left_read_orf_start, None)
+                    alt_codon = cds_start_codon[0] + '_' + orf_start_codon[0]
+                    L_Alternative_Starts[alt_codon] +=1 # Not recording the specific read here but could be modified
+                    L_NoCorrect += 1
                 else:
                     print("Not correct start")
                     L_NoCorrect += 1
 
             elif alignment_position == 'Right Edge':
                 print("Right Edge")
-                print(
-                    f'Expected gene stop: {cds_end}, Read prediction stop: {read_orf_end + read_start}, Mapped read stop: {read_end}')
-                if alignment_start + read_orf_end - 1 == cds_end:
+                print(f'Expected gene stop: {cds_end}, Read prediction stop: {read_orf_end + read_start}, Mapped read stop: {read_end}')
+                Right_read_orf_stop = read_start + read_orf_end - 1
+                diff = cds_end - Right_read_orf_stop
+                if Right_read_orf_stop == cds_end:  # if diff == 0
                     print("Found correct stop")
                     R_Correct += 1
+                elif diff % 3 == 0:
+                    # Function to append 1 to subkey
+                    print("Correct Frame predicted but wrong stop codon selected")
+                    cds_start_codon = getCodons(cds_frame, seq_length, sequence, rev_sequence, None, cds_end)
+                    orf_start_codon = getCodons(cds_frame, seq_length, sequence, rev_sequence, None, Right_read_orf_stop)
+                    alt_codon = cds_start_codon[1] + '_' + orf_start_codon[1]
+                    R_Alternative_Stops[alt_codon] +=1 # Not recording the specific read here but could be modified
+                    R_NoCorrect += 1
                 else:
                     print("Not correct stop")
                     R_NoCorrect += 1
@@ -129,20 +173,19 @@ for gene, alignment_information in bed_reads_dict.items():
                 else:
                     print("We do not think this is the correct Frame")
                     M_NoCorrect += 1
-                print(
-                    f'Mapped read start: {alignment_start}, Mapped read stop: {alignment_end}, Read prediction start: {read_orf_start}, Read prediction stop: {read_orf_end}, Correct frame: {cds_frame}')  # The frame bit here is not finished
+                print(f'Mapped read start: {alignment_start}, Mapped read stop: {alignment_end}, Read prediction start: {read_orf_start}, Read prediction stop: {read_orf_end}, Correct frame: {cds_frame}')  # The frame bit here is not finished
 
             else:  # alignment_position == 'Spanning'
                 print('Spanning')
                 if read_start + read_orf_end - 1 == cds_end:
-                    Left_read_start = read_start + read_orf_start - 1
-                    start_diff = cds_start - Left_read_start
+                    Left_read_orf_start = read_start + read_orf_start - 1
+                    start_diff = cds_start - Left_read_orf_start
                     if start_diff == 0:
                         print("We think this is the correct Frame")
                         S_Correct += 1
                     elif start_diff % 3 == 0:
                         print("Correct Frame predicted but wrong start codon selected")
-                        S_Alternative_Starts[compared_read] = start_diff  # Left_read_start
+                        S_Alternative_Starts[compared_read] = start_diff  # Left_read_orf_start
                     else:
                         print("We do not think this is the correct Frame")
                         S_NoCorrect += 1

@@ -115,14 +115,14 @@ for gene, alignment_information in bed_reads_dict.items():
         (cds_start, cds_end, cds_frame, alignment_position, read_start, read_end, alignment_start,
          alignment_end) = mapped_read_info
         print(f'Read start: {read_start}, Read end: {read_end}, Alignment position: {alignment_position}, CDS Frame: {cds_frame}')
-        if 'Chromosome-17336/1' in compared_read:
+        if 'Chromosome-32366/1' in compared_read: # This is the funky read
             print("$$")
         try:
-            predicted_read = predicted_reads_dict[compared_read]
-            (read_orf_start, read_orf_end, read_orf_frame) = predicted_read
+            predicted_orf = predicted_reads_dict[compared_read]
+            (read_orf_start, read_orf_end, read_orf_frame) = predicted_orf
             mapped_read_length = read_end - read_start #+ 1
             if '-' in read_orf_frame: # This needs to be up here for the print statements
-                r_start = mapped_read_length - read_orf_end + 1
+                r_start = mapped_read_length - read_orf_end + 1 # maybe we don't need the +1 / -1
                 r_stop = mapped_read_length - read_orf_start + 1
                 Left_read_orf_start = read_start + r_start - 1
                 Left_read_orf_stop = read_start + r_stop - 1
@@ -226,9 +226,9 @@ print("Middle: " + str(M_Correct) + "/" + str(M_NoCorrect + M_Correct))
 print("Spanning: " + str(S_Correct) + "/" + str(S_NoCorrect + S_Correct))
 print("NoPrediction: " + str(NoP))
 
-l_diffs = L_Alternative_Starts.values()
-print(f"Left correct frame but wrong start codon: {len(l_diffs)}")
-print("Left Start differences:", sorted(l_diffs))
+l_diffs = len(L_Alternative_Starts.values()) + len(L_Alternative_Starts_runoff.values())
+print(f"Left correct frame but wrong start codon: " + str(l_diffs))
+#print("Left Start differences:", sorted(l_diffs))
 
 s_diffs = S_Alternative_Starts.values()
 print("Spanning Start differences:", sorted(s_diffs))

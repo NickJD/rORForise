@@ -13,11 +13,11 @@ with open(gff_file, "r") as file:
         gff_start = int(fields[3])
         gff_stop = int(fields[4])
         gff_read_frame = fields[6]
-        predicted_reads_dict[gff_read] = [gff_start, gff_stop, gff_read_frame]
+        predicted_reads_dict[gff_read] = [gff_start, gff_stop, gff_read_frame] # does this allow for more than one ORF per read?
 
 bed_reads_dict = defaultdict(dict)
 
-
+prediction_category = defaultdict(list)
 
 # Specify the path to the processed BED file
 bed_file = "mapped_reads_05.bed"
@@ -37,22 +37,38 @@ with open(bed_file, "r") as file:
             bed_mapped_read_frame = fields[5]
             bed_CDS_frame = fields[12]
 
-            # Determine alignment position within the gene
-            if bed_read_start >= bed_cds_start and bed_read_end <= bed_cds_end:  # Read is completely within the CDS gene
-                bed_alignment_position = "Middle"
-            elif bed_read_start < bed_cds_start and bed_read_end > bed_cds_end:  # Read overlaps both ends of the CDS gene
-                bed_alignment_position = "Spanning"
-            elif bed_read_start < bed_cds_start and bed_read_end > bed_cds_start:  # Read is on the left of the CDS gene
-                bed_alignment_position = "Left Edge"
-            elif bed_read_start < bed_cds_end and bed_read_end > bed_cds_end:  # Read is on the right of the CDS gene
-                bed_alignment_position = "Right Edge"
-            else:
-                print("WAT")
-            bed_alignment_start = max(bed_read_start, bed_cds_start)
-            bed_alignment_end = min(bed_read_end, bed_cds_end)
-            # Store the read information in the dictionary
-            bed_reads_dict[bed_gene_id][bed_read_id] = (bed_cds_start, bed_cds_end, bed_CDS_frame, bed_alignment_position,
-                                                        bed_read_start, bed_read_end, bed_alignment_start, bed_alignment_end)
+            try:
+                read_ORF = predicted_reads_dict[bed_read_id]
+                if bed_CDS_frame == '+' and bed_mapped_read_frame == '+' and read_ORF[2] == '+':
+                    prediction_category['Category_1'].append([bed_gene_id,bed_read_id,read_ORF])
+
+                elif bed_CDS_frame == '+' and bed_mapped_read_frame == '+' and read_ORF[2] == '-':
+                    prediction_category['Category_2'].append([bed_gene_id,bed_read_id,read_ORF])
+
+                elif bed_CDS_frame == '+' and bed_mapped_read_frame == '-' and read_ORF[2] == '-':
+                    prediction_category['Category_3'].append([bed_gene_id,bed_read_id,read_ORF])
+
+                elif bed_CDS_frame == '+' and bed_mapped_read_frame == '-' and read_ORF[2] == '+':
+                    prediction_category['Category_4'].append([bed_gene_id,bed_read_id,read_ORF])
+
+                elif bed_CDS_frame == '-' and bed_mapped_read_frame == '+' and read_ORF[2] == '+':
+                    prediction_category['Category_5'].append([bed_gene_id,bed_read_id,read_ORF])
+
+                elif bed_CDS_frame == '-' and bed_mapped_read_frame == '+' and read_ORF[2] == '-':
+                    prediction_category['Category_6'].append([bed_gene_id,bed_read_id,read_ORF])
+
+                elif bed_CDS_frame == '-' and bed_mapped_read_frame == '-' and read_ORF[2] == '-':
+                    prediction_category['Category_7'].append([bed_gene_id,bed_read_id,read_ORF])
+
+                elif bed_CDS_frame == '-' and bed_mapped_read_frame == '-' and read_ORF[2] == '+':
+                    prediction_category['Category_8'].append([bed_gene_id,bed_read_id,read_ORF])
+                else:
+                    print("HMM")
+            except KeyError:
+                continue
+
+
+print("And Here")
 
 
 

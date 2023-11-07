@@ -120,7 +120,7 @@ for gene, alignment_information in bed_reads_dict.items():
         try:
             predicted_orf = predicted_reads_dict[compared_read]
             (read_orf_start, read_orf_end, read_orf_frame) = predicted_orf
-            mapped_read_length = read_end - read_start #+ 1
+            mapped_read_length = read_end - read_start + 1
             if '-' in read_orf_frame: # This needs to be up here for the print statements
                 r_start = mapped_read_length - read_orf_end + 1 # maybe we don't need the +1 / -1
                 r_stop = mapped_read_length - read_orf_start + 1
@@ -137,7 +137,7 @@ for gene, alignment_information in bed_reads_dict.items():
                 print("Left Edge")
                 print(f'Expected gene start: {cds_start}, Read prediction start: {Left_read_orf_start}, Mapped read start: {read_start}')
                 diff = cds_start - Left_read_orf_start
-                if Left_read_orf_start == cds_start:  # if diff == 0
+                if diff == 0:
                     print("Found correct start")
                     L_Correct += 1
                 elif diff % 3 == 0:

@@ -26,6 +26,8 @@ predictions = defaultdict(lambda: defaultdict(list))
 # Specify the path to the processed BED file
 bed_file = "mapped_reads_05.bed"
 
+catch = []
+
 with open(bed_file, "r") as file:
     for line in file:
         fields = line.strip().split("\t")
@@ -44,44 +46,46 @@ with open(bed_file, "r") as file:
             try:
                 prediction = predicted_reads_dict[bed_read_id]
                 for pred in prediction:
+                    if pred[0] not in predictions:
+                        print("")
+                    else:
+                        print("D$$K")
                     if bed_CDS_frame == '+' and bed_mapped_read_frame == '+' and pred[3] == '+':
                         prediction_category['Category_1'].append([bed_gene_id,bed_read_id,prediction])
-                        predictions[pred[0]] = {bed_gene_id: []}
                         predictions[pred[0]][bed_gene_id].append(['Category_1', pred])
 
                     elif bed_CDS_frame == '+' and bed_mapped_read_frame == '+' and pred[3] == '-':
                         prediction_category['Category_2'].append([bed_gene_id,bed_read_id,prediction])
-                        predictions[pred[0]] = {bed_gene_id: []}
                         predictions[pred[0]][bed_gene_id].append(['Category_2', pred])
 
                     elif bed_CDS_frame == '+' and bed_mapped_read_frame == '-' and pred[3] == '-':
                         prediction_category['Category_3'].append([bed_gene_id,bed_read_id,pred])
-                        predictions[pred[0]] = {bed_gene_id: []}
+
                         predictions[pred[0]][bed_gene_id].append(['Category_3', pred])
 
                     elif bed_CDS_frame == '+' and bed_mapped_read_frame == '-' and pred[3] == '+':
                         prediction_category['Category_4'].append([bed_gene_id,bed_read_id,pred])
-                        predictions[pred[0]] = {bed_gene_id: []}
+
                         predictions[pred[0]][bed_gene_id].append(['Category_4', pred])
 
                     elif bed_CDS_frame == '-' and bed_mapped_read_frame == '+' and pred[3] == '+':
                         prediction_category['Category_5'].append([bed_gene_id,bed_read_id,pred])
-                        predictions[pred[0]] = {bed_gene_id: []}
+
                         predictions[pred[0]][bed_gene_id].append(['Category_5', pred])
 
                     elif bed_CDS_frame == '-' and bed_mapped_read_frame == '+' and pred[3] == '-':
                         prediction_category['Category_6'].append([bed_gene_id,bed_read_id,pred])
-                        predictions[pred[0]] = {bed_gene_id: []}
+
                         predictions[pred[0]][bed_gene_id].append(['Category_6', pred])
 
                     elif bed_CDS_frame == '-' and bed_mapped_read_frame == '-' and pred[3] == '-':
                         prediction_category['Category_7'].append([bed_gene_id,bed_read_id,pred])
-                        predictions[pred[0]] = {bed_gene_id: []}
+
                         predictions[pred[0]][bed_gene_id].append(['Category_7', pred])
 
                     elif bed_CDS_frame == '-' and bed_mapped_read_frame == '-' and pred[3] == '+':
                         prediction_category['Category_8'].append([bed_gene_id,bed_read_id,pred])
-                        predictions[pred[0]] = {bed_gene_id: []}
+
                         predictions[pred[0]][bed_gene_id].append(['Category_8', pred])
                     else:
                         print("HMM")
@@ -91,14 +95,17 @@ with open(bed_file, "r") as file:
 
 print("And Here")
 
+count = 0
 # Assuming predictions is a dictionary of dictionaries
 for key, sub_dict in predictions.items():
     if sum(len(value) for value in sub_dict.values()) > 1:
         print(f"Sub-dictionary at key {key} has more than one value:")
+        count += 1
         for sub_key, sub_value in sub_dict.items():
             print(f"    {sub_key}: {sub_value}")
 
-print("sss")
+
+print(count)
 
 
 

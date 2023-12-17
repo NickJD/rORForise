@@ -1,0 +1,24 @@
+Produce simulated reads: -ef tag produces an error-free samfile
+
+art_illumina -ss HSXt -ef -i Myco.fa -p -l 150 -f 20 -m 200 -s 10 -o Myco_ART 
+
+
+Extract error free paired reads from sam files:
+
+samtools fastq -N  -1 Myco_ART_errFree_R1.fastq -2 Myco_ART_errFree_R2.fastq -s single_reads.fastq Myco_ART_errFree.sam
+
+
+Pair the reads: -b 64 is needed or will get segfault
+
+pear -f ./Myco_ART_errFree_R1.fastq -r ./Myco_ART_errFree_R2.fastq  -o ./Myco_ART_errFree_paired -j 8  -y 10G -b 64
+
+
+Convert fastq to fasta:
+
+awk 'NR%4==1{print ">"$1} NR%4==2{print}' Myco_ART_errFree_paired.assembled.fastq > Myco_ART_errFree_paired.fasta
+
+
+Fraggenescan predict CDS fragments:
+
+~/Software/FragGeneScan1.31/run_FragGeneScan.pl -genome Myco_ART_errFree_paired.fasta -o test -complete 0 -train complete 
+

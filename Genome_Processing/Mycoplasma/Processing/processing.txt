@@ -22,3 +22,19 @@ Fraggenescan predict CDS fragments:
 
 ~/Software/FragGeneScan1.31/run_FragGeneScan.pl -genome Myco_ART_errFree_paired.fasta -o test -complete 0 -train complete 
 
+build bowtie2 database:
+bowtie2-build Myco.fa ./Bowtie2_Read_Alignment/Myco_bowtie2
+
+
+align reads:
+bowtie2 -x ./Bowtie2_Read_Alignment/Myco_bowtie2 -U ART_Simulated_Reads/Myco_ART_errFree_paired.fastq -S ./Bowtie2_Read_Alignment/Myco_bowtie2_Alignment.sam
+
+
+samtools view -bS ./Bowtie2_Read_Alignment/Myco_bowtie2_Alignment.sam -o ./Bowtie2_Read_Alignment/Myco_bowtie2_Alignment.bam
+samtools sort ./Bowtie2_Read_Alignment/Myco_bowtie2_Alignment.bam -o ./Bowtie2_Read_Alignment/Myco_bowtie2_Alignment_Sorted.bam
+samtools index ./Bowtie2_Read_Alignment/Myco_bowtie2_Alignment_Sorted.bam 
+
+bedtools intersect:
+bedtools intersect -a ./Bowtie2_Read_Alignment/Myco_bowtie2_Alignment_Sorted.bam -b Myco.gff -wao -bed  > Myco_Reads_Intersect.bed
+
+

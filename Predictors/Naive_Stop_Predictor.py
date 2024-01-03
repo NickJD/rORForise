@@ -4,8 +4,8 @@ import collections
 
 reads_in = open('../Genome_Processing/Mycoplasma/Processing/ART_Simulated_Reads/Myco_ART_errFree_paired.fasta', 'r')
 
-predictions = open('./Mycoplasma_Naive_2nd_Longest.fa','w')
-
+predictions_fasta = open('./Mycoplasma_Naive.fa','w')
+predictions_gff = open('./Mycoplasma_Naive.gff','w')
 
 
 ###################
@@ -108,7 +108,7 @@ def find_longest_interval(sequence, stop_codon_positions):
     for frame, intervals in all_intervals.items():
         longest_interval = max(intervals, key=lambda x: x[1] - x[0])
         current_seq = sequence[longest_interval[0]:longest_interval[1] + 3]
-        aa_seq = translate_frame(current_seq)
+        #aa_seq = translate_frame(current_seq)
         longest_intervals[frame] = {
             'interval': longest_interval,
             'sequence': current_seq,
@@ -138,16 +138,16 @@ for id, seq in sequences.items():
     longest_prediction = max(predicted_genes, key=lambda k: predicted_genes[k].get('sequence_length', 0))
     #longest_prediction = random.randint(0, 5)
 
-    # Get the unique 'sequence_length' values and sort them to find the second longest
-    unique_lengths = sorted(set(gene_data['sequence_length'] for gene_data in predicted_genes.values()), reverse=True)
-    second_longest_length = unique_lengths[1] if len(unique_lengths) > 1 else None
+    # # Get the unique 'sequence_length' values and sort them to find the second longest
+    # unique_lengths = sorted(set(gene_data['sequence_length'] for gene_data in predicted_genes.values()), reverse=True)
+    # second_longest_length = unique_lengths[1] if len(unique_lengths) > 1 else None
+    #
+    # # Find the key corresponding to the second longest 'sequence_length'
+    # second_longest_prediction = next(
+    #     (key for key, val in predicted_genes.items() if val['sequence_length'] == second_longest_length), None)
 
-    # Find the key corresponding to the second longest 'sequence_length'
-    second_longest_prediction = next(
-        (key for key, val in predicted_genes.items() if val['sequence_length'] == second_longest_length), None)
-
-    longest_interval = predicted_genes[second_longest_prediction].get('interval')
-    longest_sequence = predicted_genes[second_longest_prediction].get('sequence')
+    longest_interval = predicted_genes[longest_prediction].get('interval')
+    longest_sequence = predicted_genes[longest_prediction].get('sequence')
 
     if longest_interval[0] == 0:
         if longest_prediction in [0,3]:
@@ -160,13 +160,23 @@ for id, seq in sequences.items():
         sequence_for_frame = longest_sequence
 
     aa_seq = translate_frame(sequence_for_frame)
-    if len(aa_seq) >= 20:
 
-        predictions.write('>'+id+'|'+str(longest_interval[0])+'_'+str(longest_interval[1])
+    if len(aa_seq) >= 20:
+        id = id.replace('@','')
+        predictions_fasta.write('>'+id+'|'+str(longest_interval[0])+'_'+str(longest_interval[1])
                           +'|Frame:'+str(longest_prediction)
                           +'\n'+aa_seq+'\n')
+        if longest_prediction in [0, 1, 2]:
+            strand = "+"
+        elif longest_prediction in [3, 4, 5]:
+            strand = "-"
+        predictions_gff.write(id+'\tNS\tCDS\t'+str(longest_interval[0])+'\t'+str(longest_interval[1])+
+                              '\t.\t'+strand+'\t.\t'+id+'|'+str(longest_interval[0])+'_'+str(longest_interval[1])
+                          +'|Frame:'+str(longest_prediction)+'\n')
+
+
     else:
-        print(22)
+        print("Sequence under 20 aa")
 
 
 

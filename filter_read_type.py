@@ -4,17 +4,18 @@ predicted_reads_dict = defaultdict(list)
 
 
 # Specify the path to the processed GFF file
-gff_file = "Myco_joined_readmode.gff"
+gff_file = "./Genome_Processing/Mycoplasma/Processing/FragGeneScan/Myco_ART_errFree_paired.gff"
 
 with open(gff_file, "r") as file:
     for line in file:
         fields = line.strip().split("\t")
-        gff_read = fields[0]
-        gff_start = int(fields[3])
-        gff_stop = int(fields[4])
-        gff_read_frame = fields[6]
-        prediction = fields[8].split('=')[1].split(';')[0]
-        predicted_reads_dict[gff_read].append([prediction, gff_start, gff_stop, gff_read_frame])
+        if len(fields) == 9:
+            gff_read = fields[0].replace('@','')
+            gff_start = int(fields[3])
+            gff_stop = int(fields[4])
+            gff_read_frame = fields[6]
+            prediction = fields[8].split('=')[1].split(';')[0]
+            predicted_reads_dict[gff_read].append([prediction, gff_start, gff_stop, gff_read_frame])
 
 bed_reads_dict = defaultdict(dict)
 
@@ -24,7 +25,7 @@ prediction_category = defaultdict(list)
 predictions = defaultdict(lambda: defaultdict(list))
 
 # Specify the path to the processed BED file
-bed_file = "mapped_reads_05.bed"
+bed_file = "./Genome_Processing/Mycoplasma/Processing/Myco_Reads_Intersect.bed"
 
 catch = []
 
@@ -32,16 +33,16 @@ with open(bed_file, "r") as file:
     for line in file:
         fields = line.strip().split("\t")
         bed_read_id = fields[3]
-        attribute_type = fields[8]
+        attribute_type = fields[14]
 
         if attribute_type == 'CDS':
             bed_read_start = int(fields[1]) + 1  # Start position of the read
             bed_read_end = int(fields[2]) + 1  # End position of the read
-            bed_cds_start = int(fields[9])  # Start position of the CDS gene
-            bed_cds_end = int(fields[10])  # End position of the CDS gene
-            bed_gene_id = fields[14].split(';')[0].split(':')[1]
+            bed_cds_start = int(fields[15])  # Start position of the CDS gene
+            bed_cds_end = int(fields[16])  # End position of the CDS gene
+            bed_gene_id = fields[20].split(';')[0].split(':')[1]
             bed_mapped_read_frame = fields[5]
-            bed_CDS_frame = fields[12]
+            bed_CDS_frame = fields[18]
 
             try:
                 prediction = predicted_reads_dict[bed_read_id]
@@ -50,6 +51,7 @@ with open(bed_file, "r") as file:
                         print("")
                     else:
                         print("D$$K")
+                    pred.extend([bed_read_start,bed_read_end])
                     if bed_CDS_frame == '+' and bed_mapped_read_frame == '+' and pred[3] == '+':
                         prediction_category['Category_1'].append([bed_gene_id,bed_read_id,prediction])
                         predictions[pred[0]][bed_gene_id].append(['Category_1', pred])
@@ -89,6 +91,7 @@ with open(bed_file, "r") as file:
                         predictions[pred[0]][bed_gene_id].append(['Category_8', pred])
                     else:
                         print("HMM")
+                    print("Another")
             except KeyError:
                 continue
 

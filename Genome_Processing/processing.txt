@@ -1,0 +1,113 @@
+1. Produce simulated reads from a preassembled genome: -ef tag produces an error-free samfile
+We use the ART read simulator to cut our assembled genomes up - https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3278762/
+
+	art_illumina -ss HSXt -ef -i Myco.fa -p -l 150 -f 20 -m 200 -s 10 -o Myco_ART 
+
+##
+
+art_illumina: This is the command or executable used to invoke the ART Illumina read simulator.
+
+-ss HSXt: Specifies the sequencing system to be used (HiSeqX TruSeq (150bp)). In this case, it's using the HSXt platform for simulation. Different sequencing platforms can have specific error models, and the simulator adjusts accordingly.
+
+-ef: indicate to generate the zero sequencing errors SAM file as well the regular one NOTE: the reads in the zero-error SAM file have the same alignment positions as those in the regular SAM file, but have no sequencing errors
+
+-i Myco.fa: Specifies the input reference genome or sequence file (Myco.fa) from which the reads will be simulated.
+
+-p: Indicates paired-end reads. With this flag, ART will simulate paired-end reads.
+
+-l 150: Sets the read length to 150 base pairs. This parameter specifies the length of the generated reads.
+
+-f 20: the fold of read coverage to be simulated or number of reads/read pairs generated for each amplicon
+
+-m 200: the mean size of DNA/RNA fragments for paired-end simulations
+
+-s 10: the standard deviation of DNA/RNA fragment size for paired-end simulations.
+
+-o Myco_ART: Defines the output prefix or filename (Myco_ART) for the simulated reads. ART will generate output files with this prefix.
+##
+File we care about -> Myco_ART_errFree.sam
+
+
+2. Extract error free paired reads from sam files:
+We use Samtools fastq option - https://academic.oup.com/bioinformatics/article/25/16/2078/204688
+
+samtools fastq -N  -1 Myco_ART_errFree_R1.fastq -2 Myco_ART_errFree_R2.fastq -s single_reads.fastq Myco_ART_errFree.sam
+
+##
+samtools fastq: 
+-N: always append /1 and /2 to the read name
+
+-1: write reads designated READ1 to FILE
+
+-2: write reads designated READ2 to FILE
+
+-s: write singleton reads designated READ1 or READ2 to FILE
+
+Myco_ART_errFree.sam: input sam file with reads to be extracred into fastq format.
+
+
+##
+
+3. Flash-join/Pair the reads using Pair - https://academic.oup.com/bioinformatics/article/30/5/614/247231
+Pair the reads: -b 64 is needed or will get segfault
+
+pear -f ./Myco_ART_errFree_R1.fastq -r ./Myco_ART_errFree_R2.fastq  -o ./Myco_ART_errFree_paired -j 8  -y 10G 
+
+##
+
+-f: Forward paired-end FASTQ file.
+
+-r: Reverse paired-end FASTQ file.
+
+-o: Output filename.
+
+-j: Number of Threads 
+
+-y: Memory provided
+
+
+##
+
+
+4. Convert fastq to fasta: Simple awk script that removes the FASTQ specific details from the sequence header lines.
+
+awk 'NR%4==1{print ">"$1} NR%4==2{print}' Myco_ART_errFree_paired.assembled.fastq > Myco_ART_errFree_paired.fasta
+
+
+5. Align simualted reads back to original genome: We will do this using Bowtie2 - https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3322381/
+
+	A. Build bowtie2 database:
+	bowtie2-build Myco.fa ./Bowtie2_Read_Alignment/Myco_bowtie2
+
+	B. Align original error free fastq reads to bowtie2 database made above:
+	bowtie2 -x ./Bowtie2_Read_Alignment/Myco_bowtie2 -U ART_Simulated_Reads/Myco_ART_errFree_paired.fastq -S ./Bowtie2_Read_Alignment/Myco_bowtie2_Alignment.sam
+
+
+
+
+
+6. Predict CDS gene fragments 
+	A. Fraggenescan predict CDS fragments: https://academic.oup.com/nar/article/38/20/e191/1317565
+
+	run_FragGeneScan.pl -genome Myco_ART_errFree_paired.fasta -o test -complete 0 -train complete 
+	##
+	Prediction parameters:
+		- [complete] 1 if the sequence file has complete genomic sequences
+
+		- [train] for complete genomic sequences or short sequence reads without sequencing error
+	##
+
+	B. In-house naive stop-codon predictor.
+		Will describe elsewhere.
+
+
+7. Convert output of step 5 to a sorted BAM file using Samtools
+
+samtools view -bS ./Bowtie2_Read_Alignment/Myco_bowtie2_Alignment.sam -o ./Bowtie2_Read_Alignment/Myco_bowtie2_Alignment.bam
+samtools sort ./Bowtie2_Read_Alignment/Myco_bowtie2_Alignment.bam -o ./Bowtie2_Read_Alignment/Myco_bowtie2_Alignment_Sorted.bam
+samtools index ./Bowtie2_Read_Alignment/Myco_bowtie2_Alignment_Sorted.bam 
+
+bedtools intersect:
+bedtools intersect -a ./Bowtie2_Read_Alignment/Myco_bowtie2_Alignment_Sorted.bam -b Myco.gff -wao -bed  > Myco_Reads_Intersect.bed
+
+

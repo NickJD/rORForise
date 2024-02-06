@@ -30,6 +30,8 @@ answers = {
     "incorrect frame": 9,
     "correct direction": 10,
     "incorrect direction": 11,
+    "prediction ends before cds starts": 12, # do this, and return frame and direction
+    "prediction starts after cds ends": 13,
 }
 
 inverse_answers = {v: k for k, v in answers.items()}
@@ -48,7 +50,7 @@ def _add_answer(string_answer, answers_so_far):
 # to accumulate the possible answers for a cds-read-pred. 
 # Returns a set of answer_vals
 
-def _collect_answers(read_start, read_end, pred_start, pred_end, start_diff, stop_diff, read_captures_cds_start, read_captures_cds_end):
+def _collect_answers(read_start, read_end, pred_start, pred_end, start_diff, stop_diff, read_captures_cds_start, read_captures_cds_end, pred_before_start, pred_after_end):
 
     answer_vals = set()
     
@@ -66,7 +68,9 @@ def _collect_answers(read_start, read_end, pred_start, pred_end, start_diff, sto
         else: # wrong frame
             _add_answer("incorrect start", answer_vals)
             _add_answer("incorrect frame", answer_vals)
-
+        if pred_before_start:
+             _add_answer("prediction ends before cds starts", answer_vals)
+            
     if read_captures_cds_end:
         if stop_diff == 0:
             _add_answer("correct stop",  answer_vals)
@@ -77,6 +81,8 @@ def _collect_answers(read_start, read_end, pred_start, pred_end, start_diff, sto
         else: # wrong frame
             _add_answer("incorrect stop",  answer_vals)
             _add_answer("incorrect frame", answer_vals)
+        if pred_after_end:
+             _add_answer("prediction starts after cds end", answer_vals)
 
     if not (read_captures_cds_end or read_captures_cds_start): # middle
         # Check frame
@@ -117,7 +123,7 @@ def check_pred(cds_open, cds_close, cds_direction,
     category = (cds_direction, read_direction, pred_direction)
 
     if category == ('+','+','+'):
-        print("category 1")
+        #print("category 1")
         read_start = 1
         read_end   = read_close - (read_open - 1)
 
@@ -130,11 +136,14 @@ def check_pred(cds_open, cds_close, cds_direction,
         read_captures_cds_start = read_open <= cds_open
         read_captures_cds_end   = read_close >= cds_close
 
-        answer_vals = _collect_answers(read_start, read_end, pred_start, pred_end, start_diff, stop_diff, read_captures_cds_start, read_captures_cds_end)
+        pred_before_start_of_cds = pred_cds_end < cds_open
+        pred_after_end_of_cds = pred_cds_start > cds_close 
+        
+        answer_vals = _collect_answers(read_start, read_end, pred_start, pred_end, start_diff, stop_diff, read_captures_cds_start, read_captures_cds_end, pred_before_start_of_cds, pred_after_end_of_cds)
         
 
     elif category == ('+','-','-'):
-        print("category 3")
+        #print("category 3")
         read_start = 1
         read_end   = read_close - (read_open - 1)
 
@@ -147,11 +156,14 @@ def check_pred(cds_open, cds_close, cds_direction,
         read_captures_cds_start = read_open <= cds_open
         read_captures_cds_end   = read_close >= cds_close
 
-        answer_vals = _collect_answers(read_start, read_end, pred_cds_start, pred_cds_end, start_diff, stop_diff, read_captures_cds_start, read_captures_cds_end)
+        pred_before_start_of_cds = pred_cds_end < cds_open
+        pred_after_end_of_cds = pred_cds_start > cds_close 
+
+        answer_vals = _collect_answers(read_start, read_end, pred_cds_start, pred_cds_end, start_diff, stop_diff, read_captures_cds_start, read_captures_cds_end, pred_before_start_of_cds, pred_after_end_of_cds)
 
         
     elif category == ('-','+','-'):
-        print("category 6")
+        #print("category 6")
         read_start = 1
         read_end   = read_close - (read_open - 1)
 
@@ -164,11 +176,14 @@ def check_pred(cds_open, cds_close, cds_direction,
         read_captures_cds_start = read_close >= cds_close
         read_captures_cds_end = read_open <= cds_open
 
-        answer_vals = _collect_answers(read_start, read_end, pred_start, pred_end, start_diff, stop_diff, read_captures_cds_start, read_captures_cds_end)
+        pred_before_start_of_cds = pred_cds_end > cds_close
+        pred_after_end_of_cds = pred_cds_start < cds_open 
+        
+        answer_vals = _collect_answers(read_start, read_end, pred_start, pred_end, start_diff, stop_diff, read_captures_cds_start, read_captures_cds_end, pred_before_start_of_cds, pred_after_end_of_cds)
 
         
     elif category == ('-','-','+'):
-        print("category 8")
+        #print("category 8")
         read_start = 1
         read_end   = read_close - (read_open - 1)
 
@@ -181,13 +196,16 @@ def check_pred(cds_open, cds_close, cds_direction,
         read_captures_cds_start = read_close >= cds_close
         read_captures_cds_end   = read_open <= cds_open
         
-        answer_vals = _collect_answers(read_start, read_end, pred_cds_start, pred_cds_end, start_diff, stop_diff, read_captures_cds_start, read_captures_cds_end)
+        pred_before_start_of_cds = pred_cds_end > cds_close
+        pred_after_end_of_cds = pred_cds_start < cds_open 
+
+        answer_vals = _collect_answers(read_start, read_end, pred_cds_start, pred_cds_end, start_diff, stop_diff, read_captures_cds_start, read_captures_cds_end, pred_before_start_of_cds, pred_after_end_of_cds)
 
 
     else:
         # All other categories are incorrect strand/direction,
         # so don't need to inspect further
-        print("Not a good category")
+        #print("Not a good category")
         answer_vals = set()
         _add_answer("incorrect direction", answer_vals)
         
@@ -231,6 +249,12 @@ def main():
         print(inverse_answers[a])
     print()
 
+    answer_vals = check_pred(686,1828,'+', 596,811,'+', 1,70,'+') # cat 1, left
+    print(answer_vals) # prediction ends before cds starts
+    for a in answer_vals:
+        print(inverse_answers[a])
+    print()
 
+    
 if __name__ == "__main__": 
     main()

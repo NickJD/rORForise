@@ -30,7 +30,7 @@ answers = {
     "incorrect frame": 9,
     "correct direction": 10,
     "incorrect direction": 11,
-    "prediction ends before cds starts": 12, # do this, and return frame and direction
+    "prediction ends before cds starts": 12,
     "prediction starts after cds ends": 13,
 }
 

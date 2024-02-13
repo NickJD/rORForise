@@ -4,7 +4,7 @@ predicted_reads_dict = defaultdict(list)
 
 
 # Specify the path to the processed GFF file
-gff_file = "./Genome_Processing/Mycoplasma/Processing/FragGeneScan/Myco_ART_errFree_paired.gff"
+gff_file = "Genome_Processing/Mycoplasma/FragGeneScan/Myco_ART_errFree_paired.gff"
 
 with open(gff_file, "r") as file:
     for line in file:

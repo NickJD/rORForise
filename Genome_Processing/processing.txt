@@ -51,7 +51,7 @@ Myco_ART_errFree.sam: input sam file with reads to be extracred into fastq forma
 3. Flash-join/Pair the reads using Pair - https://academic.oup.com/bioinformatics/article/30/5/614/247231
 Pair the reads: -b 64 is needed or will get segfault
 
-pear -f ./Myco_ART_errFree_R1.fastq -r ./Myco_ART_errFree_R2.fastq  -o ./Myco_ART_errFree_paired -j 8  -y 10G 
+pear -f ./Myco_ART_errFree_R1.fastq -r ./Myco_ART_errFree_R2.fastq  -o ./Myco_ART_errFree_paired -j 8  -y 10G -b 64
 
 ##
 
@@ -64,6 +64,8 @@ pear -f ./Myco_ART_errFree_R1.fastq -r ./Myco_ART_errFree_R2.fastq  -o ./Myco_AR
 -j: Number of Threads 
 
 -y: Memory provided
+
+-b: PHRED score
 
 
 ##
@@ -80,7 +82,7 @@ awk 'NR%4==1{print ">"$1} NR%4==2{print}' Myco_ART_errFree_paired.assembled.fast
 	bowtie2-build Myco.fa ./Bowtie2_Read_Alignment/Myco_bowtie2
 
 	B. Align original error free fastq reads to bowtie2 database made above:
-	bowtie2 -x ./Bowtie2_Read_Alignment/Myco_bowtie2 -U ART_Simulated_Reads/Myco_ART_errFree_paired.fastq -S ./Bowtie2_Read_Alignment/Myco_bowtie2_Alignment.sam
+	bowtie2 -x ./Bowtie2_Read_Alignment/Myco_bowtie2 -U ART_Simulated_Reads/Myco_ART_errFree_paired.assembled.fastq -S ./Bowtie2_Read_Alignment/Myco_bowtie2_Alignment.sam
 
 
 
@@ -99,6 +101,10 @@ awk 'NR%4==1{print ">"$1} NR%4==2{print}' Myco_ART_errFree_paired.assembled.fast
 
 	B. In-house naive stop-codon predictor.
 		Will describe elsewhere.
+
+    C. Pyrodigal:
+     pyrodigal -i Processing/ART_Simulated_Reads/Staph_ART_errFree_paired.fasta  -o ./Pyrodigal/Staph_ART_errFree_paired_Pyrodigal.gff -p meta -a ./Pyrodigal/Staph_ART_errFree_paired_Pyrodigal_aa.fa -d ./Pyrodigal/Staph_ART_errFree_paired_Pyrodigal.fa
+
 
 
 7. Convert output of step 5 to a sorted BAM file using Samtools

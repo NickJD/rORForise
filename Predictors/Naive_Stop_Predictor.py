@@ -2,10 +2,10 @@ import re,sys,random
 import collections
 
 
-reads_in = open('../Genome_Processing/Mycoplasma/Processing/ART_Simulated_Reads/Myco_ART_errFree_paired.fasta', 'r')
+reads_in = open('/home/nick/Git/GeneFragValidator/Genome_Processing/Mycoplasma/Processing/ART_Simulated_Reads/Myco_ART_errFree_paired.fasta', 'r')
 
-predictions_fasta = open('./Mycoplasma_Naive.fa','w')
-predictions_gff = open('./Mycoplasma_Naive.gff','w')
+predictions_fasta = open('./Myco_Naive.fa','w')
+predictions_gff = open('./Myco_Naive.gff','w')
 
 
 ###################

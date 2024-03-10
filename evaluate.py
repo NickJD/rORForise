@@ -1,9 +1,12 @@
 import check_pred as cp
 import csv
+import os, glob
+
 
 dir = "Genome_Processing"
-genomes = ["Mycoplasma"] #,"Staph"]
-methods = ["Naive"] #,"Pyrodigal","FragGeneScan","FrameRate"]
+genomes = ["Mycoplasma_genitalium_G37"] #,"Staph"]
+fragmentation_types = ["ART_errFree_paired"]
+methods = ["FragGeneScan","Pyrodigal","Naive-StORF-V1","Naive-StORF-V2","Naive-StORF-V3"] #,"Pyrodigal","FragGeneScan","FrameRate"]
 
 # Hardcoding Myco/Mycoplasma for now
 
@@ -50,16 +53,20 @@ def evaluate(genome_name, preds, bed_intersect_filename):
                     for (pred_start, pred_end, pred_dir) in preds[read_name]:
                         #print(cds_start, cds_end, cds_dir, read_start, read_end, read_dir, pred_start, pred_end, pred_dir)
                         answer = cp.check_pred(cds_start, cds_end, cds_dir, read_start, read_end, read_dir, pred_start, pred_end, pred_dir)
-                        print(read_name,preds[read_name],answer)
+                        print(read_name,"CDS Start/End: " + str(cds_start) + "/" + str(cds_end) + " Read Start/End: " + str(read_start) + "/" +
+                              str(read_end),preds[read_name],answer)
                 else:
                     print(read_name)
                         
 
 # This returns a dictionary of lists. Key is read name. List contains all preds that made for this read. Each pred has (start, stop, dir).
-def read_preds(genome_name, method):
+def read_preds(genome_name, method, fragmentation_type):
     preds = {}
-    gff_name = f'{dir}/{genome_name}/{method}/{genome_name}_{method}.gff'
-    with open(gff_name) as f:
+    directory_path = os.path.join(dir, genome_name, method)
+    file_pattern = f"*_{fragmentation_type}.gff"
+    gff_name = glob.glob(os.path.join(directory_path, file_pattern))
+    print(gff_name[0])
+    with open(gff_name[0]) as f:
         csvr = csv.reader(f, delimiter="\t")
         for row in csvr:
             if row[0].startswith("#"):
@@ -86,8 +93,11 @@ def main():
 
         for method in methods:
             print(method)
-            preds = read_preds(genome_name, method)
-            evaluate(genome_name, preds, intersect_bed_filename)
+
+            for fragmentation_type in fragmentation_types:
+                print(fragmentation_type)
+                preds = read_preds(genome_name, method, fragmentation_type)
+                evaluate(genome_name, preds, intersect_bed_filename)
 
         
 main()

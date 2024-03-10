@@ -82,7 +82,7 @@ def _collect_answers(read_start, read_end, pred_start, pred_end, start_diff, sto
             _add_answer("incorrect stop",  answer_vals)
             _add_answer("incorrect frame", answer_vals)
         if pred_after_end:
-             _add_answer("prediction starts after cds end", answer_vals)
+             _add_answer("prediction starts after cds ends", answer_vals)
 
     if not (read_captures_cds_end or read_captures_cds_start): # middle
         # Check frame

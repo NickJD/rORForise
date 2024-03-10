@@ -136,7 +136,6 @@ for id, seq in sequences.items():
     predicted_genes.update(tmp_predicted_genes)
 
     longest_prediction = max(predicted_genes, key=lambda k: predicted_genes[k].get('sequence_length', 0))
-    #longest_prediction = random.randint(0, 5)
 
     # Get the unique 'sequence_length' values and sort them to find the second longest
     unique_lengths = sorted(set(gene_data['sequence_length'] for gene_data in predicted_genes.values()), reverse=True)

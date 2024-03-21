@@ -8,9 +8,9 @@ gene_coverage = {}
 gene_length = {}
 
 # Read the DIAMOND BLAST TSV file
-with open('../Genome_Processing/Staphylococcus_aureus_502A/FragGeneScan/FGS_ART_errFree_paired_DIAMOND_80_99', 'r') as file:
+with open('/home/nick/Git/GeneFragValidator/Genome_Processing/Mycoplasma_genitalium_G37/FragGeneScan/FragGeneScan_ART_errFree_R1_DP_80', 'r') as file:
     for line in file:
-        qseqid, sseqid, pident, qlen, slen, length, sstart, send = line.strip().split('\t')
+        qseqid, sseqid, pident, qlen, slen, length, sstart, send, score = line.strip().split('\t')
 
         # Convert string to integers for relevant columns
         slen, sstart, send = map(int, [slen, sstart, send])

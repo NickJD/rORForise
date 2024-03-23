@@ -55,7 +55,7 @@ Myco_ART_errFree.sam: input sam file with reads to be extracred into fastq forma
 	bowtie2-build Myco.fa ./Bowtie2_Read_Alignment/Myco_bowtie2
 
 	B. Align original error free fastq reads to bowtie2 database made above:
- bowtie2 -x ../Bowtie2_Read_Alignment/Myco_bowtie2 -1 Myco_ART_errFree_R1.fastq -2 Myco_ART_errFree_R2.fastq  -S ../Bowtie2_Read_Alignment/Myco_bowtie2_Alignment.sa
+ bowtie2 -x ../Bowtie2_Read_Alignment/Myco_bowtie2 -1 Myco_ART_errFree_R1.fastq -2 Myco_ART_errFree_R2.fastq  -S ../Bowtie2_Read_Alignment/Myco_bowtie2_Alignment.sam
 
 
 ##
@@ -63,7 +63,7 @@ Myco_ART_errFree.sam: input sam file with reads to be extracred into fastq forma
 
 4. Convert fastq to fasta: Simple awk script that removes the FASTQ specific details from the sequence header lines.
 
-awk 'NR%4==1{print ">"$1} NR%4==2{print}' Myco_ART_errFree_paired.assembled.fastq > Myco_ART_errFree_paired.fasta
+awk 'NR%4==1{print ">"$1} NR%4==2{print}' Myco_ART_errFree...fastq > Myco_ART_errFree...fasta
 
 
 
@@ -83,7 +83,10 @@ awk 'NR%4==1{print ">"$1} NR%4==2{print}' Myco_ART_errFree_paired.assembled.fast
 		Will describe elsewhere.
 
     C. Pyrodigal:
-     pyrodigal -i Processing/ART_Simulated_Reads/Staph_ART_errFree_paired.fasta  -o ./Pyrodigal/Staph_ART_errFree_paired_Pyrodigal.gff -p meta -a ./Pyrodigal/Staph_ART_errFree_paired_Pyrodigal_aa.fa -d ./Pyrodigal/Staph_ART_errFree_paired_Pyrodigal.fa
+pyrodigal -i Processing/ART_Simulated_Reads/Staph_ART_errFree_R1.fasta -o Pyrodigal/Staph_ART_errFree_paired_Pyrodigal_R1.gff -p meta -a ./Pyrodigal/Staph_ART_errFree_paired_Pyrodigal_R1.faa -d ./Pyrodigal/Staph_ART_errFree_paired_Pyrodigal_R1.ffn
+
+
+
 
 
 

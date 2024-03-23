@@ -2,10 +2,10 @@ import re,sys,random
 import collections
 
 
-reads_in = open('/home/nick/Git/GeneFragValidator/Genome_Processing/Mycoplasma_genitalium_G37/Processing/ART_Simulated_Reads/Myco_ART_errFree_R2.fasta', 'r')
+reads_in = open('/home/nick/Git/GeneFragValidator/Genome_Processing/Staphylococcus_aureus_502A//Processing/ART_Simulated_Reads/Staph_ART_errFree_R2.fasta', 'r')
 
-predictions_fasta = open('/home/nick/Git/GeneFragValidator/Genome_Processing/Mycoplasma_genitalium_G37/Naive-StORF-V3/Naive-StORF-V3_ART_errFree_R2.fa','w')
-predictions_gff = open('/home/nick/Git/GeneFragValidator/Genome_Processing/Mycoplasma_genitalium_G37/Naive-StORF-V3/Naive-StORF-V3_ART_errFree_R2.gff','w')
+predictions_fasta = open('/home/nick/Git/GeneFragValidator/Genome_Processing/Staphylococcus_aureus_502A//Naive-StORF-V3/Naive-StORF-V3_ART_errFree_R2.faa','w')
+predictions_gff = open('/home/nick/Git/GeneFragValidator/Genome_Processing/Staphylococcus_aureus_502A//Naive-StORF-V3/Naive-StORF-V3_ART_errFree_R2.gff','w')
 
 
 ###################

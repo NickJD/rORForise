@@ -1,19 +1,29 @@
 from collections import Counter
 import numpy as np
 import matplotlib.pyplot as plt
-
+import gzip
 import scipy.stats as stats
 
 # Function to parse Eggnog mapper output file and extract COG assignments
 def parse_eggnog_output(file_path):
     cog_assignments = []
-    with open(file_path, 'r') as file:
-        for line in file:
-            if not line.startswith('#'):
-                cogs = line.split('\t')[6]
-                for cog in cogs:
-                    if cog != 'Z' and cog != '-':
-                        cog_assignments.append(cog)
+    #Lazy
+    try:
+        with open(file_path, 'r') as file:
+            for line in file:
+                if not line.startswith('#'):
+                    cogs = line.split('\t')[6]
+                    for cog in cogs:
+                        if cog != 'Z' and cog != '-':
+                            cog_assignments.append(cog)
+    except:
+        with gzip.open(file_path, 'rt') as file:
+            for line in file:
+                if not line.startswith('#'):
+                    cogs = line.split('\t')[6]
+                    for cog in cogs:
+                        if cog != 'Z' and cog != '-':
+                            cog_assignments.append(cog)
     return cog_assignments
 
 
@@ -48,9 +58,9 @@ def ensure_same_cogs(gene_level_counts, read_level_counts):
 #                     '../Genome_Processing/Staphylococcus_aureus_502A/Pyrodigal/Pyrodigal_ART_errFree_Combined_Emapper.emapper.annotations',
 #                     '../Genome_Processing/Staphylococcus_aureus_502A/Staph_pep_Emapper.emapper.annotations']
 gene_level_file = '../Genome_Processing/Staphylococcus_aureus_502A/Staph_pep_Emapper.emapper.annotations'
-read_level_files = ['../Genome_Processing/Staphylococcus_aureus_502A/Processing/ART_Simulated_Reads/Staph_ART_errFree_Combined_Emapper.emapper.annotations',
-                    '../Genome_Processing/Staphylococcus_aureus_502A/FragGeneScan/FragGeneScan_ART_errFree_Combined_Emapper.emapper.annotations',
-                    '../Genome_Processing/Staphylococcus_aureus_502A/Pyrodigal/Pyrodigal_ART_errFree_Combined_Emapper.emapper.annotations',
+read_level_files = ['../Genome_Processing/Staphylococcus_aureus_502A/Processing/ART_Simulated_Reads/Staph_ART_errFree_Combined_Emapper.emapper.annotations.gz',
+                    '../Genome_Processing/Staphylococcus_aureus_502A/FragGeneScan/FragGeneScan_ART_errFree_Combined_Emapper.emapper.annotations.gz',
+                    '../Genome_Processing/Staphylococcus_aureus_502A/Pyrodigal/Pyrodigal_ART_errFree_Combined_Emapper.emapper.annotations.gz',
                     '../Genome_Processing/Mycoplasma_genitalium_G37/Myco_pep_Emapper.emapper.annotations']
 
 

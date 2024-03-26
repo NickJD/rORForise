@@ -17,7 +17,7 @@ total_genes_with_prediction = 0
 coverage_counters = {25: 0, 50: 0, 75: 0, 90: 0, 99: 0, 100: 0}
 
 # Read the DIAMOND BLAST TSV file
-with open('/home/nick/Git/GeneFragValidator/Genome_Processing/Staphylococcus_aureus_502A/'
+with open('../Genome_Processing/Staphylococcus_aureus_502A/'
           'Naive-StORF-V3/Naive-StORF-V3_ART_errFree_Combined_DP_80', 'r') as blast_file:
     for line in blast_file:
         fields = line.strip().split('\t')
@@ -36,7 +36,7 @@ with open('/home/nick/Git/GeneFragValidator/Genome_Processing/Staphylococcus_aur
         add_coverage(gene_coverage[sseqid], int(sstart), int(send))
 
 # Read the FASTA file containing predictions
-with open('/home/nick/Git/GeneFragValidator/Genome_Processing/Staphylococcus_aureus_502A/'
+with open('../Genome_Processing/Staphylococcus_aureus_502A/'
           'Naive-StORF-V3/Naive-StORF-V3_ART_errFree_Combined.faa', 'r') as fasta_file:
     for line in fasta_file:
         if line.startswith('>'):

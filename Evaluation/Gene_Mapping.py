@@ -1,4 +1,4 @@
-def visualize_reads_and_cds(cds_range, read_ranges_with_cds, line_length=100, gene_info="Gene 60-1000"):
+def visualize_reads_and_cds(cds_range, read_ranges_with_cds, line_length=100, gene_info="CDS Gene 686 - 1828"):
     max_position = max([cds_range[1]] + [end for _, _, _, end in read_ranges_with_cds])
     scale_factor = max_position / line_length
 
@@ -73,8 +73,8 @@ def visualize_reads_and_cds(cds_range, read_ranges_with_cds, line_length=100, ge
 
 
 # Example usage
-cds_range = (60, 1000)
-read_ranges_with_cds = [(20, 50, 220, 210), (700, 720, 880, 900), (850, 860, 1000, 1050), (500, 550, 700, 750)]
+cds_range = (686, 1828)
+read_ranges_with_cds = [(650, 686, 798, 798), (700, 725, 845, 845), (850, 850, 1095, 1095), (1700, 1702, 1828, 1845)]
 
-visualization = visualize_reads_and_cds(cds_range, read_ranges_with_cds, gene_info="Gene: 60-1000")
+visualization = visualize_reads_and_cds(cds_range, read_ranges_with_cds, gene_info="Gene: 686 - 1828")
 print(visualization)

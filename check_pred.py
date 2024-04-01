@@ -127,7 +127,7 @@ def check_pred(cds_open, cds_close, cds_direction,
         read_start = 1
         read_end   = read_close - (read_open - 1)
 
-        pred_cds_start = read_open + (pred_start - 1)
+        pred_cds_start = read_open + (pred_start) #I removed the '-1' from this line
         pred_cds_end   = read_open + (pred_end - 1) 
 
         start_diff = pred_cds_start - cds_open
@@ -159,7 +159,7 @@ def check_pred(cds_open, cds_close, cds_direction,
         pred_before_start_of_cds = pred_cds_end < cds_open
         pred_after_end_of_cds = pred_cds_start > cds_close 
 
-        answer_vals = _collect_answers(read_start, read_end, pred_cds_start, pred_cds_end, start_diff, stop_diff, read_captures_cds_start, read_captures_cds_end, pred_before_start_of_cds, pred_after_end_of_cds)
+        answer_vals = _collect_answers(read_start, read_end, pred_start, pred_end, start_diff, stop_diff, read_captures_cds_start, read_captures_cds_end, pred_before_start_of_cds, pred_after_end_of_cds)
 
         
     elif category == ('-','+','-'):
@@ -199,7 +199,7 @@ def check_pred(cds_open, cds_close, cds_direction,
         pred_before_start_of_cds = pred_cds_end > cds_close
         pred_after_end_of_cds = pred_cds_start < cds_open 
 
-        answer_vals = _collect_answers(read_start, read_end, pred_cds_start, pred_cds_end, start_diff, stop_diff, read_captures_cds_start, read_captures_cds_end, pred_before_start_of_cds, pred_after_end_of_cds)
+        answer_vals = _collect_answers(read_start, read_end, pred_start, pred_end, start_diff, stop_diff, read_captures_cds_start, read_captures_cds_end, pred_before_start_of_cds, pred_after_end_of_cds)
 
 
     else:
@@ -219,7 +219,7 @@ def check_pred(cds_open, cds_close, cds_direction,
 # Examples of how to use this check_pred function
 
 def main():
-    answer_vals = check_pred(686,1828,'+', 596,811,'+', 91,213,'+') # cat 1, left
+    answer_vals = check_pred(686,1828,'+', 596,811,'+', 90,213,'+') # cat 1, left
     print(answer_vals) # correct start
     for a in answer_vals:
         print(inverse_answers[a])

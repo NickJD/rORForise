@@ -1,3 +1,5 @@
+import collections
+
 import check_pred as cp
 import csv
 import os, glob
@@ -7,7 +9,7 @@ import gzip
 dir = "Genome_Processing"
 genomes = ["Mycoplasma_genitalium_G37"] #,"Staph"]
 fragmentation_types = ["ART_errFree"]
-subgroups = ['R1','R2','Combined']
+subgroups = ['Combined']
 methods = ["FragGeneScan","Pyrodigal","Naive-StORF-V1","Naive-StORF-V2","Naive-StORF-V3"] #,"Pyrodigal","FragGeneScan","FrameRate"]
 
 # Hardcoding Myco/Mycoplasma for now
@@ -37,6 +39,10 @@ methods = ["FragGeneScan","Pyrodigal","Naive-StORF-V1","Naive-StORF-V2","Naive-S
 """
 
 def evaluate(genome_name, preds, bed_intersect_filename):
+
+    correct_starts, incorrect_starts, alternative_starts, middle_alternative_starts, correct_stops, \
+        incorrect_stops, alternative_stops, middle_alternative_stops,  reads_with_predictions, reads_without_predictions = 0, 0, 0, 0, 0 , 0, 0 , 0, 0, 0
+
     with gzip.open(bed_intersect_filename, 'rt') as f:
         csvr = csv.reader(f, delimiter="\t")
         for bed_row in csvr:
@@ -47,7 +53,8 @@ def evaluate(genome_name, preds, bed_intersect_filename):
                 read_name  = bed_row[3]
                 read_dir   = bed_row[5]
 
-                if read_name in preds:
+                if read_name in preds: # Not counting the number of preds but the number of reads with at least one pred
+                    reads_with_predictions += 1 #len(preds[read_name])
                     cds_start = int(bed_row[15])
                     cds_end   = int(bed_row[16])
                     cds_dir   = bed_row[18]
@@ -55,15 +62,43 @@ def evaluate(genome_name, preds, bed_intersect_filename):
                     for (pred_start, pred_end, pred_dir) in preds[read_name]:
                         #print(cds_start, cds_end, cds_dir, read_start, read_end, read_dir, pred_start, pred_end, pred_dir)
                         answer = cp.check_pred(cds_start, cds_end, cds_dir, read_start, read_end, read_dir, pred_start, pred_end, pred_dir)
-                        print(read_name,"CDS Start/End: " + str(cds_start) + "/" + str(cds_end) + " Read Start/End: " + str(read_start) + "/" +
-                              str(read_end),preds[read_name],answer)
+
+                        if 0 in answer:
+                            correct_starts +=1
+                        elif 1 in answer:
+                            alternative_starts +=1
+                        elif 2 in answer:
+                            middle_alternative_starts +=1
+                        elif 3 in answer:
+                            incorrect_starts +=1
+                        if 4 in answer:
+                            correct_stops +=1
+                        elif 5 in answer:
+                            alternative_stops +=1
+                        elif 6 in answer:
+                            middle_alternative_stops +=1
+                        elif 7 in answer:
+                            incorrect_stops +=1
+#                        print(read_name,"CDS Start/End: " + str(cds_start) + "/" + str(cds_end) + " Read Start/End: " + str(read_start) + "/" +
+#                              str(read_end),preds[read_name],answer)
                 else:
-                    print(read_name)
+                    reads_without_predictions +=1
+#                    print(read_name)
+    print("reads_with_predictions: " + str(reads_with_predictions))
+    print("reads_without_predictions: " + str(reads_without_predictions))
+    print("correct_starts: " + str(correct_starts))
+    print("alternative_starts: " + str(alternative_starts))
+    print("middle_alternative_starts: " + str(middle_alternative_starts))
+    print("incorrect_starts: " + str(incorrect_starts))
+    print("correct_stops: " + str(correct_stops))
+    print("alternative_stops: " + str(alternative_stops))
+    print("middle_alternative_stops: " + str(middle_alternative_stops))
+    print("incorrect_stops: " + str(incorrect_stops))
                         
 
 # This returns a dictionary of lists. Key is read name. List contains all preds that made for this read. Each pred has (start, stop, dir).
 def read_preds(genome_name, method, fragmentation_type, group):
-    preds = {}
+    preds = collections.defaultdict(list)
     directory_path = os.path.join(dir, genome_name, method)
     file_pattern = f"*_{fragmentation_type}_{group}.gff"
     gff_name = glob.glob(os.path.join(directory_path, file_pattern))
@@ -75,14 +110,13 @@ def read_preds(genome_name, method, fragmentation_type, group):
                 continue
             else:
                 # do we need to check if row[2] == "CDS"?
-                read_name = row[0]
-                if read_name.startswith('@'):
-                    read_name  = row[0][1:] # remove the leading '@' char
-
+                read_name = row[0].replace('@','') #.replace('ID=', '').split(';')[0] # This is not great
+                #prediction_name = row[0].replace('ID=', '').split(';')[0].replace('@','')
                 pred_start = int(row[3])
-                pred_end   = int(row[4])
-                pred_dir   = row[6]
-                preds[read_name] = preds.get(read_name, []) + [(pred_start,pred_end,pred_dir)]
+                pred_end = int(row[4])
+                pred_dir = row[6]
+                preds[read_name].append((pred_start, pred_end, pred_dir))
+
     #print(preds)
     return preds
                 

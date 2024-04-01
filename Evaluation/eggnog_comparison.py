@@ -58,7 +58,7 @@ def ensure_same_cogs(gene_level_counts, read_level_counts):
 #                     '../Genome_Processing/Staphylococcus_aureus_502A/Pyrodigal/Pyrodigal_ART_errFree_Combined_Emapper.emapper.annotations',
 #                     '../Genome_Processing/Staphylococcus_aureus_502A/Staph_pep_Emapper.emapper.annotations']
 gene_level_file = '../Genome_Processing/Staphylococcus_aureus_502A/Staph_pep_Emapper.emapper.annotations'
-read_level_files = ['../Genome_Processing/Staphylococcus_aureus_502A/Processing/ART_Simulated_Reads/Staph_ART_errFree_Combined_Emapper.emapper.annotations.gz',
+read_level_files = [#'../Genome_Processing/Staphylococcus_aureus_502A/Processing/ART_Simulated_Reads/Staph_ART_errFree_Combined_Emapper.emapper.annotations.gz',
                     '../Genome_Processing/Staphylococcus_aureus_502A/FragGeneScan/FragGeneScan_ART_errFree_Combined_Emapper.emapper.annotations.gz',
                     '../Genome_Processing/Staphylococcus_aureus_502A/Pyrodigal/Pyrodigal_ART_errFree_Combined_Emapper.emapper.annotations.gz',
                     '../Genome_Processing/Mycoplasma_genitalium_G37/Myco_pep_Emapper.emapper.annotations']
@@ -117,6 +117,14 @@ for read_level_file in read_level_files:
     print("Chi-squared test statistic:", chi2)
     print("P-value:", p)
 
+
+# Custom legend names for each file
+legend_names = {
+    '../Genome_Processing/Staphylococcus_aureus_502A/FragGeneScan/FragGeneScan_ART_errFree_Combined_Emapper.emapper.annotations.gz': 'FragGeneScan',
+    '../Genome_Processing/Staphylococcus_aureus_502A/Pyrodigal/Pyrodigal_ART_errFree_Combined_Emapper.emapper.annotations.gz': 'Pyrodigal',
+    '../Genome_Processing/Mycoplasma_genitalium_G37/Myco_pep_Emapper.emapper.annotations': "Mycoplasma genitalium 'Full Proteins'"
+}
+
 # Combined "meta" figure
 plt.figure(figsize=(12, 8))
 for read_level_file in read_level_files:
@@ -142,13 +150,15 @@ for read_level_file in read_level_files:
     # Plot differences between observed and expected proportions
     cogs = sorted(gene_level_counts.keys())
     diffs = [observed_proportions[cog] - expected_proportions[cog] for cog in cogs]
-    plt.plot(cogs, diffs, label=read_level_file)
+    plt.plot(cogs, diffs, label=legend_names.get(read_level_file, read_level_file))  # Use custom legend name if available
 
-plt.xlabel('COG Category')
-plt.ylabel('Difference (Observed - Expected)')
-plt.title('Differences between Observed and Expected COG Proportions')
-plt.xticks(rotation=45, ha='right')
-plt.legend()
+plt.xlabel('COG Category', fontsize = 24)
+plt.ylabel('Difference (Observed - Expected)', fontsize = 24)
+plt.title('Differences between Observed and Expected COG Proportions', fontsize = 24)
+plt.xticks(rotation=45, ha='right', fontsize = 14)
+plt.yticks(fontsize = 14)
+plt.legend(fontsize = 24)
+plt.ylim(-0.20, 0.20)
 plt.grid(axis='y')
 plt.tight_layout()
 plt.show()

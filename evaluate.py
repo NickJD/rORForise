@@ -1,11 +1,13 @@
 import check_pred as cp
 import csv
 import os, glob
+import gzip
 
 
 dir = "Genome_Processing"
 genomes = ["Mycoplasma_genitalium_G37"] #,"Staph"]
-fragmentation_types = ["ART_errFree_paired"]
+fragmentation_types = ["ART_errFree"]
+subgroups = ['R1','R2','Combined']
 methods = ["FragGeneScan","Pyrodigal","Naive-StORF-V1","Naive-StORF-V2","Naive-StORF-V3"] #,"Pyrodigal","FragGeneScan","FrameRate"]
 
 # Hardcoding Myco/Mycoplasma for now
@@ -35,7 +37,7 @@ methods = ["FragGeneScan","Pyrodigal","Naive-StORF-V1","Naive-StORF-V2","Naive-S
 """
 
 def evaluate(genome_name, preds, bed_intersect_filename):
-    with open(bed_intersect_filename) as f:
+    with gzip.open(bed_intersect_filename, 'rt') as f:
         csvr = csv.reader(f, delimiter="\t")
         for bed_row in csvr:
             if bed_row[14] == "CDS":
@@ -60,10 +62,10 @@ def evaluate(genome_name, preds, bed_intersect_filename):
                         
 
 # This returns a dictionary of lists. Key is read name. List contains all preds that made for this read. Each pred has (start, stop, dir).
-def read_preds(genome_name, method, fragmentation_type):
+def read_preds(genome_name, method, fragmentation_type, group):
     preds = {}
     directory_path = os.path.join(dir, genome_name, method)
-    file_pattern = f"*_{fragmentation_type}.gff"
+    file_pattern = f"*_{fragmentation_type}_{group}.gff"
     gff_name = glob.glob(os.path.join(directory_path, file_pattern))
     print(gff_name[0])
     with open(gff_name[0]) as f:
@@ -89,15 +91,17 @@ def main():
     for genome_name in genomes:
         print(genome_name)
         datadir = dir + "/" + genome_name + "/Processing"
-        intersect_bed_filename = datadir + "/Myco_Reads_Intersect.bed"
+        intersect_bed_filename = datadir + "/Myco_Reads_Intersect.bed.gz"
 
         for method in methods:
             print(method)
 
             for fragmentation_type in fragmentation_types:
                 print(fragmentation_type)
-                preds = read_preds(genome_name, method, fragmentation_type)
-                evaluate(genome_name, preds, intersect_bed_filename)
+
+                for group in subgroups:
+                    preds = read_preds(genome_name, method, fragmentation_type, group)
+                    evaluate(genome_name, preds, intersect_bed_filename)
 
         
 main()

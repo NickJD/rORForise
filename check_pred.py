@@ -125,10 +125,10 @@ def check_pred(cds_open, cds_close, cds_direction,
     if category == ('+','+','+'):
         #print("category 1")
         read_start = 1
-        read_end   = read_close - (read_open - 1)
+        read_end = read_close - (read_open)
 
         pred_cds_start = read_open + (pred_start) #I removed the '-1' from this line
-        pred_cds_end   = read_open + (pred_end - 1) 
+        pred_cds_end   = read_open + (pred_end) # removed here too
 
         start_diff = pred_cds_start - cds_open
         stop_diff  = pred_cds_end - cds_close
@@ -145,10 +145,10 @@ def check_pred(cds_open, cds_close, cds_direction,
     elif category == ('+','-','-'):
         #print("category 3")
         read_start = 1
-        read_end   = read_close - (read_open - 1)
+        read_end   = read_close - (read_open)#I removed the '-1' from this line
 
-        pred_cds_start = read_close - (pred_end - 1)
-        pred_cds_end   = read_close - (pred_start - 1)
+        pred_cds_start = read_close - (pred_end)#I removed the '-1' from this line
+        pred_cds_end   = read_close - (pred_start)#I removed the '-1' from this line
         
         start_diff = pred_cds_start - cds_open
         stop_diff  = pred_cds_end - cds_close
@@ -165,10 +165,10 @@ def check_pred(cds_open, cds_close, cds_direction,
     elif category == ('-','+','-'):
         #print("category 6")
         read_start = 1
-        read_end   = read_close - (read_open - 1)
+        read_end   = read_close - (read_open)#I removed the '-1' from this line
 
-        pred_cds_start = read_open + (pred_start - 1)
-        pred_cds_end   = read_open + (pred_end - 1)
+        pred_cds_start = read_open + (pred_start)#I removed the '-1' from this line
+        pred_cds_end   = read_open + (pred_end )#I removed the '-1' from this line
 
         start_diff = pred_cds_end - cds_close
         stop_diff  = pred_cds_start - cds_open
@@ -185,10 +185,10 @@ def check_pred(cds_open, cds_close, cds_direction,
     elif category == ('-','-','+'):
         #print("category 8")
         read_start = 1
-        read_end   = read_close - (read_open - 1)
+        read_end   = read_close - (read_open)#I removed the '-1' from this line
 
-        pred_cds_start = read_close - (pred_start - 1)
-        pred_cds_end   = read_close - (pred_end - 1)
+        pred_cds_start = read_close - (pred_start)#I removed the '-1' from this line
+        pred_cds_end   = read_close - (pred_end)#I removed the '-1' from this line
         
         start_diff = pred_cds_start - cds_close
         stop_diff  = pred_cds_end - cds_open

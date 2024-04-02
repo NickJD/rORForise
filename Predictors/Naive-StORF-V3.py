@@ -148,25 +148,40 @@ for id, seq in sequences.items():
     longest_interval = predicted_genes[longest_prediction].get('interval')
     longest_sequence = predicted_genes[longest_prediction].get('sequence')
 
+    first_start_position = longest_interval[0]
+    first_stop_position = longest_interval[1]
+
     if longest_interval[0] == 0:
         if longest_prediction in [0,3]:
             longest_sequence_for_frame = longest_sequence
+            first_start_position += 1
         elif longest_prediction in [1,4]:
             longest_sequence_for_frame = longest_sequence[1:]
+            first_start_position += 2
         elif longest_prediction in [2,5]:
             longest_sequence_for_frame = longest_sequence[2:]
+            first_start_position += 3
     else:
         longest_sequence_for_frame = longest_sequence
 #####
+
     second_longest_interval = predicted_genes[second_longest_prediction].get('interval')
     second_longest_sequence = predicted_genes[second_longest_prediction].get('sequence')
+
+    second_start_position = second_longest_interval[0]
+    second_stop_position = second_longest_interval[1]
+
+
     if second_longest_interval[0] == 0:
         if second_longest_prediction in [0,3]:
             second_longest_sequence_for_frame = second_longest_sequence
+            second_start_position = +1
         elif second_longest_prediction in [1,4]:
             second_longest_sequence_for_frame = second_longest_sequence[1:]
+            second_start_position = +2
         elif second_longest_prediction in [2,5]:
             second_longest_sequence_for_frame = second_longest_sequence[2:]
+            second_start_position = +3
     else:
         second_longest_sequence_for_frame = second_longest_sequence
 
@@ -176,16 +191,16 @@ for id, seq in sequences.items():
 
     if len(longest_aa_seq) >= 20:
         id = id.replace('@','')
-        predictions_fasta.write('>'+id+'|'+str(longest_interval[0])+'_'+str(longest_interval[1])
-                          +'|Frame:'+str(longest_prediction)
+        predictions_fasta.write('>'+id+'|'+str(first_start_position)+'_'+str(first_stop_position)
+                          +'|Frame:'+str(longest_prediction+1)
                           +'\n'+longest_aa_seq+'\n')
         if longest_prediction in [0, 1, 2]:
             strand = "+"
         elif longest_prediction in [3, 4, 5]:
             strand = "-"
-        predictions_gff.write(id+'\tNS\tCDS\t'+str(longest_interval[0])+'\t'+str(longest_interval[1])+
-                              '\t.\t'+strand+'\t.\t'+id+'|'+str(longest_interval[0])+'_'+str(longest_interval[1])
-                          +'|Frame:'+str(longest_prediction)+'\n')
+        predictions_gff.write(id+'\tNS\tCDS\t'+str(first_start_position)+'\t'+str(first_stop_position)+
+                              '\t.\t'+strand+'\t.\t'+id+'|'+str(first_start_position)+'_'+str(first_stop_position)
+                          +'|Frame:'+str(longest_prediction+1)+'\n')
 
 
     else:
@@ -199,16 +214,16 @@ for id, seq in sequences.items():
 
         if len(second_longest_aa_seq) >= 20:
             id = id.replace('@','')
-            predictions_fasta.write('>'+id+'|'+str(second_longest_interval[0])+'_'+str(second_longest_interval[1])
-                              +'|Frame:'+str(second_longest_prediction)
+            predictions_fasta.write('>'+id+'|'+str(second_start_position)+'_'+str(second_stop_position)
+                              +'|Frame:'+str(second_longest_prediction+1)
                               +'\n'+second_longest_aa_seq+'\n')
             if second_longest_prediction in [0, 1, 2]:
                 strand = "+"
             elif second_longest_prediction in [3, 4, 5]:
                 strand = "-"
-            predictions_gff.write(id+'\tNS\tCDS\t'+str(second_longest_interval[0])+'\t'+str(second_longest_interval[1])+
-                                  '\t.\t'+strand+'\t.\t'+id+'|'+str(second_longest_interval[0])+'_'+str(second_longest_interval[1])
-                              +'|Frame:'+str(second_longest_prediction)+'\n')
+            predictions_gff.write(id+'\tNS\tCDS\t'+str(second_start_position)+'\t'+str(second_stop_position)+
+                                  '\t.\t'+strand+'\t.\t'+id+'|'+str(second_start_position)+'_'+str(second_stop_position)
+                              +'|Frame:'+str(second_longest_prediction+1)+'\n')
 
 
         else:

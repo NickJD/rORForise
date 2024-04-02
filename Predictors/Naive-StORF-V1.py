@@ -2,10 +2,10 @@ import re,sys,random
 import collections
 
 
-reads_in = open('../Genome_Processing/Mycoplasma_genitalium_G37//Processing/ART_Simulated_Reads/Myco_ART_errFree_R1.fasta', 'r')
+reads_in = open('../Genome_Processing/Mycoplasma_genitalium_G37//Processing/ART_Simulated_Reads/Myco_ART_errFree_Combined.fasta', 'r')
 
-predictions_fasta = open('../Genome_Processing/Mycoplasma_genitalium_G37/Naive-StORF-V1/Naive-StORF-V1_ART_errFree_R1.faa','w')
-predictions_gff = open('../Genome_Processing/Mycoplasma_genitalium_G37/Naive-StORF-V1/Naive-StORF-V1_ART_errFree_R1.gff','w')
+predictions_fasta = open('../Genome_Processing/Mycoplasma_genitalium_G37/Naive-StORF-V1/Naive-StORF-V1_ART_errFree_Combined.faa','w')
+predictions_gff = open('../Genome_Processing/Mycoplasma_genitalium_G37/Naive-StORF-V1/Naive-StORF-V1_ART_errFree_Combined.gff','w')
 
 
 ###################
@@ -33,6 +33,16 @@ def translate_frame(sequence):
 
 ############################
 
+def trim_sequence(seq):
+    remainder = len(seq) % 3
+    if remainder == 1:
+        return seq[:-1],remainder
+    elif remainder == 2:
+        return seq[:-2],remainder
+    else:
+        return seq,remainder
+
+############################
 def revCompIterative(watson): #Gets Reverse Complement
     complements = {'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C', 'N': 'N',
                    'R': 'Y', 'Y': 'R', 'S': 'S', 'W': 'W', 'K': 'M',
@@ -53,6 +63,7 @@ def get_stops(sequence):
     for stop_codon in ['TGA','TAG','TAA']:  # Find all Stops in seq
         stops += [match.start() for match in re.finditer(re.escape(stop_codon), sequence)]
     stops.sort()
+    #stops = [stop + 1 for stop in stops]
     return stops
 
 def fasta_load(fasta_in):
@@ -92,25 +103,34 @@ def find_longest_interval(sequence, stop_codon_positions):
     for frame in range(3):
         stops = sorted(list(stop_codons_per_frame[frame]))
         if not stops:
-            all_intervals[frame].append((0, seq_length - 1))
+            all_intervals[frame].append((1, seq_length))
             continue
 
         if stops[0] != 0:
-            all_intervals[frame].append((0, stops[0]))
+            all_intervals[frame].append((1, stops[0]))
 
         for i in range(len(stops) - 1):
             all_intervals[frame].append((stops[i], stops[i + 1]))
 
         if stops[-1] != seq_length - 1:
-            all_intervals[frame].append((stops[-1], seq_length - 1))
+            all_intervals[frame].append((stops[-1], seq_length))
 
     longest_intervals = {}
     for frame, intervals in all_intervals.items():
         longest_interval = max(intervals, key=lambda x: x[1] - x[0])
-        current_seq = sequence[longest_interval[0]:longest_interval[1] + 3]
+        #
+        if longest_interval[0] == 1:
+            current_seq = sequence[longest_interval[0] - 1:longest_interval[1]]
+        else:
+            current_seq = sequence[longest_interval[0]:longest_interval[1]]
+
+        current_seq,remainder = trim_sequence(current_seq)
+        new_end = longest_interval[1] - remainder
+        new_longest_interval = (longest_interval[0], new_end)
+
         #aa_seq = translate_frame(current_seq)
         longest_intervals[frame] = {
-            'interval': longest_interval,
+            'interval': new_longest_interval,
             'sequence': current_seq,
             'sequence_length': len(current_seq)
         }
@@ -123,7 +143,14 @@ def find_longest_interval(sequence, stop_codon_positions):
 for id, seq in sequences.items():
     frames_covered = collections.defaultdict(int)
     #Pos Strand
+
     stops = get_stops(seq)
+
+    if id == '@Chromosome-77292/1':
+        print("answer")
+    if id == '@Chromosome-77336/1':
+        print("ss")
+
     predicted_genes = find_longest_interval(seq,stops)
 
 
@@ -149,30 +176,66 @@ for id, seq in sequences.items():
     longest_interval = predicted_genes[longest_prediction].get('interval')
     longest_sequence = predicted_genes[longest_prediction].get('sequence')
 
-    if longest_interval[0] == 0:
+    start_position = longest_interval[0]
+    stop_position = longest_interval[1]
+
+    if id == '@Chromosome-77292/1':
+        print("answer")
+
+    if longest_interval[0] == 1:
         if longest_prediction in [0,3]:
             sequence_for_frame = longest_sequence
+            #start_position += 1
         elif longest_prediction in [1,4]:
             sequence_for_frame = longest_sequence[1:]
+            start_position += 1
+            sequence_for_frame, remainder = trim_sequence(sequence_for_frame)
+            stop_position = longest_interval[1] - remainder
+            #start_position +=2
         elif longest_prediction in [2,5]:
+            #start_position +=3
             sequence_for_frame = longest_sequence[2:]
+            start_position += 2
+            sequence_for_frame, remainder = trim_sequence(sequence_for_frame)
+            stop_position = longest_interval[1] - remainder
+            #new_longest_interval = (longest_interval[0], new_end)
+
+        if longest_prediction >= 3:
+            corrected_start_position = max(len(seq) - int(stop_position - 1), 1)
+            corrected_stop_position = max(len(seq) - int(start_position - 1), 1)
+        else:
+            corrected_start_position = start_position
+            corrected_stop_position = stop_position
+
+
     else:
         sequence_for_frame = longest_sequence
 
+        if longest_prediction >= 3:
+            corrected_start_position = start_position #+ 1
+            corrected_stop_position = stop_position #- 1
+        else:
+            corrected_start_position = start_position #+ 1
+            corrected_stop_position = stop_position #+ 1
+
+
+
     aa_seq = translate_frame(sequence_for_frame)
+    if aa_seq[0] == '*':
+        aa_seq = aa_seq[1:]
 
     if len(aa_seq) >= 20:
         id = id.replace('@','')
-        predictions_fasta.write('>'+id+'|'+str(longest_interval[0])+'_'+str(longest_interval[1])
-                          +'|Frame:'+str(longest_prediction)
+        predictions_fasta.write('>'+id+'|'+str(corrected_start_position)+'_'+str(corrected_stop_position)
+                          +'|Frame:'+str(longest_prediction+1)
                           +'\n'+aa_seq+'\n')
         if longest_prediction in [0, 1, 2]:
             strand = "+"
         elif longest_prediction in [3, 4, 5]:
             strand = "-"
-        predictions_gff.write(id+'\tNS\tCDS\t'+str(longest_interval[0])+'\t'+str(longest_interval[1])+
-                              '\t.\t'+strand+'\t.\t'+id+'|'+str(longest_interval[0])+'_'+str(longest_interval[1])
-                          +'|Frame:'+str(longest_prediction)+'\n')
+        predictions_gff.write(id+'\tNS\tCDS\t'+str(corrected_start_position)+'\t'+str(corrected_stop_position)+
+                              '\t.\t'+strand+'\t.\t'+id+'|'+str(corrected_start_position)+'_'+str(corrected_stop_position)
+                          +'|Frame:'+str(longest_prediction+1)+'\n')
 
 
     else:

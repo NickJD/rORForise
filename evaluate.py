@@ -11,7 +11,7 @@ genomes = ["Mycoplasma_genitalium_G37"] #,"Staph"]
 fragmentation_types = ["ART_errFree"]
 subgroups = ['Combined']
 methods = ["FragGeneScan","Pyrodigal","Naive-StORF-V1"]#,"Naive-StORF-V2","Naive-StORF-V3"] #,"Pyrodigal","FragGeneScan","FrameRate"]
-
+#methods = ["Naive-StORF-V1"]
 # Hardcoding Myco/Mycoplasma for now
 
 """ bedfile:
@@ -43,7 +43,7 @@ def evaluate(genome_name, preds, bed_intersect_filename, method):
     correct_starts, incorrect_starts, alternative_starts, middle_alternative_starts, correct_stops, \
         incorrect_stops, alternative_stops, middle_alternative_stops,  reads_with_predictions, \
         reads_without_predictions, correct_frames, incorrect_frames, correct_directions, incorrect_directions, \
-        prediction_ends_before_cds_starts, prediction_starts_before_cds_ends = 0,0, 0, 0, 0, 0 , 0, 0 , 0, 0, 0,0,0,0,0,0
+        prediction_ends_before_cds_starts, prediction_starts_after_cds_ends = 0,0, 0, 0, 0, 0 , 0, 0 , 0, 0, 0,0,0,0,0,0
 
     with gzip.open(bed_intersect_filename, 'rt') as f:
         csvr = csv.reader(f, delimiter="\t")
@@ -63,7 +63,7 @@ def evaluate(genome_name, preds, bed_intersect_filename, method):
                     cds_end   = int(bed_row[16])
                     cds_dir   = bed_row[18]
 
-                    if read_name == 'Chromosome-77340/1':
+                    if read_name == 'Chromosome-8822/2':
                         print("answer")
 
                     for (pred_start, pred_end, pred_dir) in preds[read_name]:
@@ -77,32 +77,32 @@ def evaluate(genome_name, preds, bed_intersect_filename, method):
                             correct_starts +=1
                             # if 'Naive' in method:
                             #     print(read_name)
-                        elif 1 in answer:
+                        if 1 in answer:
                             alternative_starts +=1
-                        elif 2 in answer:
+                        if 2 in answer:
                             middle_alternative_starts +=1
-                        elif 3 in answer:
+                        if 3 in answer:
                             incorrect_starts +=1
                         if 4 in answer:
                             correct_stops +=1
-                        elif 5 in answer:
+                        if 5 in answer:
                             alternative_stops +=1
-                        elif 6 in answer:
+                        if 6 in answer:
                             middle_alternative_stops +=1
-                        elif 7 in answer:
+                        if 7 in answer:
                             incorrect_stops +=1
-                        elif 8 in answer:
+                        if 8 in answer:
                             correct_frames +=1
-                        elif 9 in answer:
+                        if 9 in answer:
                             incorrect_frames +=1
-                        elif 10 in answer:
+                        if 10 in answer:
                             correct_directions +=1
-                        elif 11 in answer:
+                        if 11 in answer:
                             incorrect_directions +=1
-                        elif 12 in answer:
+                        if 12 in answer:
                             prediction_ends_before_cds_starts +=1
-                        elif 13 in answer:
-                            prediction_starts_before_cds_ends +=1
+                        if 13 in answer:
+                            prediction_starts_after_cds_ends +=1
 
 
 
@@ -128,7 +128,7 @@ def evaluate(genome_name, preds, bed_intersect_filename, method):
     print("correct_directions: " + str(correct_directions))
     print("incorrect_directions: " + str(incorrect_directions))
     print("prediction_ends_before_cds_starts: " + str(prediction_ends_before_cds_starts))
-    print("prediction_starts_before_cds_ends: " + str(prediction_starts_before_cds_ends))
+    print("prediction_starts_after_cds_ends: " + str(prediction_starts_after_cds_ends))
                         
 
 # This returns a dictionary of lists. Key is read name. List contains all preds that made for this read. Each pred has (start, stop, dir).

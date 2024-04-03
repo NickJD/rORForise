@@ -14,11 +14,11 @@ predictions_with_hit = 0
 total_genes_with_prediction = 0
 
 # Initialize counters for coverage percentages
-coverage_counters = {25: 0, 50: 0, 75: 0, 90: 0, 99: 0, 100: 0}
+coverage_counters = {25: 0, 50: 0, 75: 0, 90: 0, 95:0, 99: 0, 100: 0}
 
 # Read the DIAMOND BLAST TSV file
 with open('../Genome_Processing/Mycoplasma_genitalium_G37/'
-          'Pyrodigal/Pyrodigal_ART_errFree_R2_DP_80', 'r') as blast_file:
+          'Naive-StORF-V2/Naive-StORF-V2_ART_errFree_Combined_DP_80', 'r') as blast_file:
     for line in blast_file:
         fields = line.strip().split('\t')
         qseqid, sseqid, pident, qlen, slen, length, sstart, send, score = line.strip().split('\t')
@@ -37,7 +37,7 @@ with open('../Genome_Processing/Mycoplasma_genitalium_G37/'
 
 # Read the FASTA file containing predictions
 with open('../Genome_Processing/Mycoplasma_genitalium_G37/'
-          'Pyrodigal/Pyrodigal_ART_errFree_R2.faa', 'r') as fasta_file:
+          'Naive-StORF-V2/Naive-StORF-V2_ART_errFree_Combined.faa', 'r') as fasta_file:
     for line in fasta_file:
         if line.startswith('>'):
             total_predictions += 1

@@ -150,6 +150,8 @@ for id, seq in sequences.items():
         print("answer")
     if id == '@Chromosome-77336/1':
         print("ss")
+    if id == '@Chromosome-38196/1':
+        print("answer")
 
     predicted_genes = find_longest_interval(seq,stops)
 
@@ -179,8 +181,7 @@ for id, seq in sequences.items():
     start_position = longest_interval[0]
     stop_position = longest_interval[1]
 
-    if id == '@Chromosome-77292/1':
-        print("answer")
+
 
     if longest_interval[0] == 1:
         if longest_prediction in [0,3]:
@@ -200,7 +201,7 @@ for id, seq in sequences.items():
             stop_position = longest_interval[1] - remainder
             #new_longest_interval = (longest_interval[0], new_end)
 
-        if longest_prediction >= 3:
+        if longest_prediction >= 3: # might need to do +1
             corrected_start_position = max(len(seq) - int(stop_position - 1), 1)
             corrected_stop_position = max(len(seq) - int(start_position - 1), 1)
         else:
@@ -215,7 +216,7 @@ for id, seq in sequences.items():
             corrected_start_position = start_position #+ 1
             corrected_stop_position = stop_position #- 1
         else:
-            corrected_start_position = start_position #+ 1
+            corrected_start_position = start_position + 1
             corrected_stop_position = stop_position #+ 1
 
 

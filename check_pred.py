@@ -140,15 +140,15 @@ def check_pred(cds_open, cds_close, cds_direction,
         pred_after_end_of_cds = pred_cds_start > cds_close 
         
         answer_vals = _collect_answers(read_start, read_end, pred_start, pred_end, start_diff, stop_diff, read_captures_cds_start, read_captures_cds_end, pred_before_start_of_cds, pred_after_end_of_cds)
-        
+
 
     elif category == ('+','-','-'):
         #print("category 3")
         read_start = 1
         read_end   = read_close - (read_open)#I removed the '-1' from this line
 
-        pred_cds_start = read_close - (pred_end)#I removed the '-1' from this line
-        pred_cds_end   = read_close - (pred_start)#I removed the '-1' from this line
+        pred_cds_start = read_close - (pred_end + 1)#I removed the '-1' from this line
+        pred_cds_end   = read_close - (pred_start - 1)#I removed the '-1' from this line
         
         start_diff = pred_cds_start - cds_open
         stop_diff  = pred_cds_end - cds_close
@@ -223,13 +223,13 @@ def main():
     print(answer_vals) # correct start
     for a in answer_vals:
         print(inverse_answers[a])
-    print()
+    print() #REWORKED
     
-    answer_vals = check_pred(686,1828,'+', 614,821,'-', 2,136,'-') # cat 3, left
-    print(answer_vals) # correct start
+    answer_vals = check_pred(686,1828,'+', 681,831,'-', 3,149,'-') # cat 3, left
+    print(answer_vals) # incorrect start,incorrect frame and direction
     for a in answer_vals:
         print(inverse_answers[a])
-    print()
+    print() #REWORKED
     
     answer_vals = check_pred(12701,13564,'-', 12649,12858,'+', 53,208,'-') # cat 6, left
     print(answer_vals) # correct stop

@@ -1,8 +1,8 @@
-import re,sys,random
+import re,sys
 import collections
 
 
-reads_in = open('../Genome_Processing/Mycoplasma_genitalium_G37//Processing/ART_Simulated_Reads/Myco_ART_errFree_Combined.fasta', 'r')
+reads_in = open('../Genome_Processing/Mycoplasma_genitalium_G37/Processing/ART_Simulated_Reads/Myco_ART_errFree_Combined.fasta', 'r')
 
 predictions_fasta = open('../Genome_Processing/Mycoplasma_genitalium_G37/Naive-StORF-V1/Naive-StORF-V1_ART_errFree_Combined.faa','w')
 predictions_gff = open('../Genome_Processing/Mycoplasma_genitalium_G37/Naive-StORF-V1/Naive-StORF-V1_ART_errFree_Combined.gff','w')
@@ -124,10 +124,9 @@ def find_longest_interval(sequence, stop_codon_positions):
         else:
             current_seq = sequence[longest_interval[0]:longest_interval[1]]
 
-        current_seq,remainder = trim_sequence(current_seq)
+        current_seq, remainder = trim_sequence(current_seq)
         new_end = longest_interval[1] - remainder
         new_longest_interval = (longest_interval[0], new_end)
-
         #aa_seq = translate_frame(current_seq)
         longest_intervals[frame] = {
             'interval': new_longest_interval,
@@ -143,21 +142,15 @@ def find_longest_interval(sequence, stop_codon_positions):
 for id, seq in sequences.items():
     frames_covered = collections.defaultdict(int)
     #Pos Strand
-
     stops = get_stops(seq)
-
-    if id == '@Chromosome-77292/1':
-        print("answer")
-    if id == '@Chromosome-77336/1':
-        print("ss")
-    if id == '@Chromosome-38196/1':
-        print("answer")
-
     predicted_genes = find_longest_interval(seq,stops)
 
 
     rev_seq = revCompIterative(seq)
     rev_stops = get_stops(rev_seq)
+
+    if 'Chromosome-77338/1' in id:
+        print()
 
     key_mapping = {0: 3, 1: 4, 2: 5}
     tmp_predicted_genes = find_longest_interval(rev_seq,rev_stops)
@@ -165,15 +158,6 @@ for id, seq in sequences.items():
     predicted_genes.update(tmp_predicted_genes)
 
     longest_prediction = max(predicted_genes, key=lambda k: predicted_genes[k].get('sequence_length', 0))
-    #longest_prediction = random.randint(0, 5)
-
-    # # Get the unique 'sequence_length' values and sort them to find the second longest
-    # unique_lengths = sorted(set(gene_data['sequence_length'] for gene_data in predicted_genes.values()), reverse=True)
-    # second_longest_length = unique_lengths[1] if len(unique_lengths) > 1 else None
-    #
-    # # Find the key corresponding to the second longest 'sequence_length'
-    # second_longest_prediction = next(
-    #     (key for key, val in predicted_genes.items() if val['sequence_length'] == second_longest_length), None)
 
     longest_interval = predicted_genes[longest_prediction].get('interval')
     longest_sequence = predicted_genes[longest_prediction].get('sequence')
@@ -181,25 +165,19 @@ for id, seq in sequences.items():
     start_position = longest_interval[0]
     stop_position = longest_interval[1]
 
-
-
     if longest_interval[0] == 1:
         if longest_prediction in [0,3]:
             sequence_for_frame = longest_sequence
-            #start_position += 1
         elif longest_prediction in [1,4]:
             sequence_for_frame = longest_sequence[1:]
             start_position += 1
             sequence_for_frame, remainder = trim_sequence(sequence_for_frame)
             stop_position = longest_interval[1] - remainder
-            #start_position +=2
         elif longest_prediction in [2,5]:
-            #start_position +=3
             sequence_for_frame = longest_sequence[2:]
             start_position += 2
             sequence_for_frame, remainder = trim_sequence(sequence_for_frame)
             stop_position = longest_interval[1] - remainder
-            #new_longest_interval = (longest_interval[0], new_end)
 
         if longest_prediction >= 3: # might need to do +1
             corrected_start_position = max(len(seq) - int(stop_position - 1), 1)
@@ -207,7 +185,6 @@ for id, seq in sequences.items():
         else:
             corrected_start_position = start_position
             corrected_stop_position = stop_position
-
 
     else:
         sequence_for_frame = longest_sequence

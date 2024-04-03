@@ -1,11 +1,11 @@
-import re,sys,random
+import re,sys
 import collections
 
 
-reads_in = open('/home/nick/Git/GeneFragValidator/Genome_Processing/Staphylococcus_aureus_502A//Processing/ART_Simulated_Reads/Staph_ART_errFree_R1.fasta', 'r')
+reads_in = open('/home/nick/Git/GeneFragValidator/Genome_Processing/Mycoplasma_genitalium_G37/Processing/ART_Simulated_Reads/Myco_ART_errFree_Combined.fasta', 'r')
 
-predictions_fasta = open('/home/nick/Git/GeneFragValidator/Genome_Processing/Staphylococcus_aureus_502A//Naive-StORF-V2/Naive-StORF-V2_ART_errFree_R1.faa','w')
-predictions_gff = open('/home/nick/Git/GeneFragValidator/Genome_Processing/Staphylococcus_aureus_502A//Naive-StORF-V2/Naive-StORF-V2_ART_errFree_R1.gff','w')
+predictions_fasta = open('/home/nick/Git/GeneFragValidator/Genome_Processing/Mycoplasma_genitalium_G37/Naive-StORF-V2/Naive-StORF-V2_ART_errFree_Combined_NEW.faa','w')
+predictions_gff = open('/home/nick/Git/GeneFragValidator/Genome_Processing/Mycoplasma_genitalium_G37/Naive-StORF-V2/Naive-StORF-V2_ART_errFree_Combined_NEW.gff','w')
 
 
 ###################
@@ -30,6 +30,18 @@ gencode = {
 def translate_frame(sequence):
     translate = ''.join([gencode.get(sequence[3 * i:3 * i + 3], 'X') for i in range(len(sequence) // 3)])
     return translate
+
+############################
+
+
+def trim_sequence(seq):
+    remainder = len(seq) % 3
+    if remainder == 1:
+        return seq[:-1],remainder
+    elif remainder == 2:
+        return seq[:-2],remainder
+    else:
+        return seq,remainder
 
 ############################
 
@@ -92,25 +104,33 @@ def find_longest_interval(sequence, stop_codon_positions):
     for frame in range(3):
         stops = sorted(list(stop_codons_per_frame[frame]))
         if not stops:
-            all_intervals[frame].append((0, seq_length - 1))
+            all_intervals[frame].append((1, seq_length))
             continue
 
         if stops[0] != 0:
-            all_intervals[frame].append((0, stops[0]))
+            all_intervals[frame].append((1, stops[0]))
 
         for i in range(len(stops) - 1):
             all_intervals[frame].append((stops[i], stops[i + 1]))
 
         if stops[-1] != seq_length - 1:
-            all_intervals[frame].append((stops[-1], seq_length - 1))
+            all_intervals[frame].append((stops[-1], seq_length))
 
     longest_intervals = {}
     for frame, intervals in all_intervals.items():
         longest_interval = max(intervals, key=lambda x: x[1] - x[0])
-        current_seq = sequence[longest_interval[0]:longest_interval[1] + 3]
-        #aa_seq = translate_frame(current_seq)
+        #
+        if longest_interval[0] == 1:
+            current_seq = sequence[longest_interval[0] - 1:longest_interval[1]]
+        else:
+            current_seq = sequence[longest_interval[0]:longest_interval[1]]
+
+        current_seq, remainder = trim_sequence(current_seq)
+        new_end = longest_interval[1] - remainder
+        new_longest_interval = (longest_interval[0], new_end)
+
         longest_intervals[frame] = {
-            'interval': longest_interval,
+            'interval': new_longest_interval,
             'sequence': current_seq,
             'sequence_length': len(current_seq)
         }
@@ -126,6 +146,8 @@ for id, seq in sequences.items():
     stops = get_stops(seq)
     predicted_genes = find_longest_interval(seq,stops)
 
+    if 'Chromosome-77338/1' in id:
+        print()
 
     rev_seq = revCompIterative(seq)
     rev_stops = get_stops(rev_seq)
@@ -151,53 +173,90 @@ for id, seq in sequences.items():
     first_start_position = longest_interval[0]
     first_stop_position = longest_interval[1]
 
-    if longest_interval[0] == 0:
+    if longest_interval[0] == 1:
         if longest_prediction in [0,3]:
             longest_sequence_for_frame = longest_sequence
-            first_start_position += 1
         elif longest_prediction in [1,4]:
             longest_sequence_for_frame = longest_sequence[1:]
-            first_start_position += 2
+            first_start_position += 1
+            longest_sequence_for_frame, remainder = trim_sequence(longest_sequence_for_frame)
+            first_stop_position = longest_interval[1] - remainder
         elif longest_prediction in [2,5]:
             longest_sequence_for_frame = longest_sequence[2:]
-            first_start_position += 3
+            first_start_position += 2
+            longest_sequence_for_frame, remainder = trim_sequence(longest_sequence_for_frame)
+            first_stop_position = longest_interval[1] - remainder
+
+        if longest_prediction >= 3: # might need to do +1
+            corrected_first_start_position = max(len(seq) - int(first_stop_position - 1), 1)
+            corrected_first_stop_position = max(len(seq) - int(first_start_position - 1), 1)
+        else:
+            corrected_first_start_position = first_start_position
+            corrected_first_stop_position = first_stop_position
     else:
         longest_sequence_for_frame = longest_sequence
-#####
+
+        if longest_prediction >= 3:
+            corrected_first_start_position = first_start_position  # + 1
+            corrected_first_stop_position = first_stop_position  # - 1
+        else:
+            corrected_first_start_position = first_start_position + 1
+            corrected_first_stop_position = first_stop_position  # + 1
+
+##### # second longest
     second_longest_interval = predicted_genes[second_longest_prediction].get('interval')
     second_longest_sequence = predicted_genes[second_longest_prediction].get('sequence')
 
     second_start_position = second_longest_interval[0]
     second_stop_position = second_longest_interval[1]
 
-    if second_longest_interval[0] == 0:
-        if second_longest_prediction in [0,3]:
+    if second_longest_interval[0] == 1:
+        if second_longest_prediction in [0, 3]:
             second_longest_sequence_for_frame = second_longest_sequence
-            second_start_position =+1
-        elif second_longest_prediction in [1,4]:
+        elif second_longest_prediction in [1, 4]:
             second_longest_sequence_for_frame = second_longest_sequence[1:]
-            second_start_position =+ 2
-        elif second_longest_prediction in [2,5]:
+            second_start_position = +1
+            second_longest_sequence_for_frame, remainder = trim_sequence(second_longest_sequence_for_frame)
+            second_stop_position = second_longest_interval[1] - remainder
+        elif second_longest_prediction in [2, 5]:
             second_longest_sequence_for_frame = second_longest_sequence[2:]
-            second_start_position =+ 3
+            second_start_position = +2
+            second_longest_sequence_for_frame, remainder = trim_sequence(second_longest_sequence_for_frame)
+            second_stop_position = second_longest_interval[1] - remainder
+
+        if longest_prediction >= 3:  # might need to do +1
+            corrected_second_start_position = max(len(seq) - int(second_stop_position - 1), 1)
+            corrected_second_stop_position = max(len(seq) - int(second_start_position - 1), 1)
+        else:
+            corrected_second_start_position = second_start_position
+            corrected_second_top_position = second_stop_position
     else:
         second_longest_sequence_for_frame = second_longest_sequence
+
+        if second_longest_prediction >= 3:
+            corrected_second_start_position = second_start_position  # + 1
+            corrected_second_stop_position = second_stop_position  # - 1
+        else:
+            corrected_second_start_position = second_start_position + 1
+            corrected_second_stop_position = second_stop_position  # + 1
 
 ####
 
     longest_aa_seq = translate_frame(longest_sequence_for_frame)
+    if longest_aa_seq[0] == '*':
+        longest_aa_seq = longest_aa_seq[1:]
 
     if len(longest_aa_seq) >= 20:
         id = id.replace('@','')
-        predictions_fasta.write('>'+id+'|'+str(first_start_position)+'_'+str(first_stop_position)
+        predictions_fasta.write('>'+id+'|'+str(corrected_first_start_position)+'_'+str(corrected_first_stop_position)
                           +'|Frame:'+str(longest_prediction+1)
                           +'\n'+longest_aa_seq+'\n')
         if longest_prediction in [0, 1, 2]:
             strand = "+"
         elif longest_prediction in [3, 4, 5]:
             strand = "-"
-        predictions_gff.write(id+'\tNS\tCDS\t'+str(first_start_position)+'\t'+str(first_stop_position)+
-                              '\t.\t'+strand+'\t.\t'+id+'|'+str(first_start_position)+'_'+str(first_stop_position)
+        predictions_gff.write(id+'\tNS\tCDS\t'+str(corrected_first_start_position)+'\t'+str(corrected_first_stop_position)+
+                              '\t.\t'+strand+'\t.\t'+id+'|'+str(corrected_first_start_position)+'_'+str(corrected_first_stop_position)
                           +'|Frame:'+str(longest_prediction+1)+'\n')
 
 
@@ -205,18 +264,20 @@ for id, seq in sequences.items():
         print("Sequence under 20 aa")
 
     second_longest_aa_seq = translate_frame(second_longest_sequence_for_frame)
+    if second_longest_aa_seq[0] == '*':
+        second_longest_aa_seq = second_longest_aa_seq[1:]
 
     if len(second_longest_aa_seq) >= 20:
         id = id.replace('@','')
-        predictions_fasta.write('>'+id+'|'+str(second_start_position)+'_'+str(second_stop_position)
+        predictions_fasta.write('>'+id+'|'+str(corrected_second_start_position)+'_'+str(corrected_second_stop_position)
                           +'|Frame:'+str(second_longest_prediction+1)
                           +'\n'+second_longest_aa_seq+'\n')
         if second_longest_prediction in [0, 1, 2]:
             strand = "+"
         elif second_longest_prediction in [3, 4, 5]:
             strand = "-"
-        predictions_gff.write(id+'\tNS\tCDS\t'+str(second_start_position)+'\t'+str(second_stop_position)+
-                              '\t.\t'+strand+'\t.\t'+id+'|'+str(second_start_position)+'_'+str(second_stop_position)
+        predictions_gff.write(id+'\tNS\tCDS\t'+str(corrected_second_start_position)+'\t'+str(corrected_second_stop_position)+
+                              '\t.\t'+strand+'\t.\t'+id+'|'+str(corrected_second_start_position)+'_'+str(corrected_second_stop_position)
                           +'|Frame:'+str(second_longest_prediction+1)+'\n')
 
 

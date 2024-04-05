@@ -11,9 +11,10 @@ genomes = ["Mycoplasma_genitalium_G37"] #,"Staph"]
 #genomes = ["Staphylococcus_aureus_502A"]
 fragmentation_types = ["ART_errFree"]
 subgroups = ['Combined']
-methods = ["FragGeneScan","Naive-StORF-V1"]#,"Naive-StORF-V2","Naive-StORF-V3"] #,"Pyrodigal","FragGeneScan","FrameRate"]
-#methods = ["Naive-StORF-V1"]
+methods = ["FragGeneScan","Pyrodigal","Naive-StORF-V1"]#,"Naive-StORF-V2","Naive-StORF-V3"] #,"Pyrodigal","FragGeneScan","FrameRate"]
+
 #methods = ["Pyrodigal"]
+#methods = ["Naive-StORF-V1"]
 # Hardcoding Myco/Mycoplasma for now
 
 """ bedfile:
@@ -61,7 +62,7 @@ def evaluate(genome_name, preds, bed_intersect_filename, method):
                 read_name  = bed_row[3]
                 read_dir   = bed_row[5]
 
-                # if read_name == 'Chromosome-77316/1':
+                # if read_name == 'Chromosome-1802/1':
                 #     print("answer")
                 # else:
                 #     continue

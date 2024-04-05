@@ -7,7 +7,7 @@ import gzip
 
 
 dir = "Genome_Processing"
-genomes = ["Mycoplasma_genitalium_G37"] #,"Staph"]
+genomes = ["Mycoplasma_genitalium_G37","Staphylococcus_aureus_502A"] #,"Staph"]
 #genomes = ["Staphylococcus_aureus_502A"]
 fragmentation_types = ["ART_errFree"]
 subgroups = ['Combined']
@@ -179,7 +179,7 @@ def main():
     for genome_name in genomes:
         print(genome_name)
         datadir = dir + "/" + genome_name + "/Processing"
-        intersect_bed_filename = datadir + "/Myco_Reads_Intersect.bed.gz"
+        intersect_bed_filename = datadir + "/"+genome_name+"_Reads_Intersect.bed.gz"
 
         for method in methods:
             print(method)

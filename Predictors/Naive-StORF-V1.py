@@ -2,10 +2,10 @@ import re,sys
 import collections
 
 
-reads_in = open('../Genome_Processing/Mycoplasma_genitalium_G37/Processing/ART_Simulated_Reads/Myco_ART_errFree_Combined.fasta', 'r')
+reads_in = open('../Genome_Processing/Staphylococcus_aureus_502A/Processing/ART_Simulated_Reads/Staph_ART_errFree_Combined.fasta', 'r')
 
-predictions_fasta = open('../Genome_Processing/Mycoplasma_genitalium_G37/Naive-StORF-V1/Naive-StORF-V1_ART_errFree_Combined.faa','w')
-predictions_gff = open('../Genome_Processing/Mycoplasma_genitalium_G37/Naive-StORF-V1/Naive-StORF-V1_ART_errFree_Combined.gff','w')
+predictions_fasta = open('../Genome_Processing/Staphylococcus_aureus_502A/Naive-StORF-V1/Naive-StORF-V1_ART_errFree_Combined.faa','w')
+predictions_gff = open('../Genome_Processing/Staphylococcus_aureus_502A/Naive-StORF-V1/Naive-StORF-V1_ART_errFree_Combined.gff','w')
 
 
 ###################

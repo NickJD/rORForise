@@ -33,12 +33,18 @@ def translate_frame(sequence):
 
 ############################
 
-def trim_sequence(seq):
+def trim_sequence(seq,direction): # I don't think direction is needed. I have left this in but the run is the same
     remainder = len(seq) % 3
     if remainder == 1:
-        return seq[:-1],remainder
+        if direction == '+':
+            return seq[:-1],remainder
+        elif direction == '-':
+            return seq[:-1], remainder
     elif remainder == 2:
-        return seq[:-2],remainder
+        if direction == '+':
+            return seq[:-2],remainder
+        elif direction == '-':
+            return seq[:-2], remainder
     else:
         return seq,remainder
 
@@ -91,7 +97,7 @@ def fasta_load(fasta_in):
 sequences = fasta_load(reads_in)
 
 
-def find_longest_interval(sequence, stop_codon_positions):
+def find_longest_interval(sequence, stop_codon_positions, direction):
     seq_length = len(seq)
     stop_codons_per_frame = {0: set(), 1: set(), 2: set()}
     all_intervals = {0: [], 1: [], 2: []}
@@ -118,16 +124,54 @@ def find_longest_interval(sequence, stop_codon_positions):
     longest_intervals = {}
     for frame, intervals in all_intervals.items():
         longest_interval = max(intervals, key=lambda x: x[1] - x[0])
-        #
-        if longest_interval[0] == 1:
-            current_seq = sequence[longest_interval[0] - 1:longest_interval[1]]
-        else:
-            current_seq = sequence[longest_interval[0]:longest_interval[1]]
+        longest_interval = list(longest_interval)
+        seq_pos = [longest_interval[0], longest_interval[1]]
 
-        current_seq, remainder = trim_sequence(current_seq)
-        new_end = longest_interval[1] - remainder
-        new_longest_interval = (longest_interval[0], new_end)
-        #aa_seq = translate_frame(current_seq)
+        if direction == '+':
+            if longest_interval[0] == 1 or seq_pos[0] == 1:
+                seq_pos[0] = seq_pos[0] - 1
+                # longest_interval[0] -= 1
+                # current_seq = sequence[longest_interval[0] - 1:longest_interval[1]]
+            if longest_interval[1] not in [148, 149, 150]:  # hard coded for now
+                # if 150 in list(longest_interval[1]):
+                seq_pos[1] = seq_pos[1] + 3
+                longest_interval[1] += 3
+            #    current_seq = sequence[longest_interval[0]:longest_interval[1]]
+
+            current_seq = sequence[seq_pos[0]:seq_pos[1]]
+
+            current_seq, remainder = trim_sequence(current_seq,direction)
+            new_end = longest_interval[1] - remainder
+            new_longest_interval = (longest_interval[0], new_end)
+
+        elif direction == '-':
+            start, end = longest_interval
+            new_start = max(seq_length - end -2, 1)
+            if start == 1:
+                new_end = seq_length
+            else:
+                new_end = max(seq_length - start, 1)
+            longest_interval = [new_start, new_end]
+            #seq_pos = longest_interval
+
+            if longest_interval[1] == 150:# or seq_pos[0] == 1:
+                seq_pos[0] = seq_pos[0] - 1
+                #longest_interval[0] -= 1
+                #current_seq = sequence[longest_interval[0] - 1:longest_interval[1]]
+            if longest_interval[0] not in [1, 2, 3]: # hard coded for now
+            #if 150 in list(longest_interval[1]):
+                seq_pos[1] = seq_pos[1] + 3
+                #longest_interval[1] += 3
+            #    current_seq = sequence[longest_interval[0]:longest_interval[1]]
+
+            current_seq = sequence[seq_pos[0]:seq_pos[1]]
+
+            current_seq, remainder = trim_sequence(current_seq,direction)
+            new_end = longest_interval[1] - remainder
+            new_longest_interval = (longest_interval[0], new_end)
+
+
+
         longest_intervals[frame] = {
             'interval': new_longest_interval,
             'sequence': current_seq,
@@ -140,20 +184,26 @@ def find_longest_interval(sequence, stop_codon_positions):
 
 
 for id, seq in sequences.items():
+
+
+    if '@Chromosome-77234/1' in id:
+        print()
+    # else:
+    #     continue
+
     frames_covered = collections.defaultdict(int)
     #Pos Strand
     stops = get_stops(seq)
-    predicted_genes = find_longest_interval(seq,stops)
+    predicted_genes = find_longest_interval(seq,stops,'+')
 
 
     rev_seq = revCompIterative(seq)
     rev_stops = get_stops(rev_seq)
 
-    if 'Chromosome-77338/1' in id:
-        print()
+
 
     key_mapping = {0: 3, 1: 4, 2: 5}
-    tmp_predicted_genes = find_longest_interval(rev_seq,rev_stops)
+    tmp_predicted_genes = find_longest_interval(rev_seq,rev_stops,'-')
     tmp_predicted_genes = {key_mapping[old_key]: value for old_key, value in tmp_predicted_genes.items()}
     predicted_genes.update(tmp_predicted_genes)
 
@@ -165,29 +215,67 @@ for id, seq in sequences.items():
     start_position = longest_interval[0]
     stop_position = longest_interval[1]
 
+    if longest_prediction in [0,1,2]:
+        direction = '+'
+    elif longest_prediction in [3,4,5]:
+        direction = '-'
+
     if longest_interval[0] == 1:
         if longest_prediction in [0,3]:
             sequence_for_frame = longest_sequence
-        elif longest_prediction in [1,4]:
+        elif longest_prediction in [1]:
             sequence_for_frame = longest_sequence[1:]
+            sequence_for_frame = sequence_for_frame[:-2]
             start_position += 1
-            sequence_for_frame, remainder = trim_sequence(sequence_for_frame)
-            stop_position = longest_interval[1] - remainder
-        elif longest_prediction in [2,5]:
-            sequence_for_frame = longest_sequence[2:]
+            stop_position -= 2
+        elif longest_prediction in [4]:
+            if longest_interval[1] in [148,149,150]:
+                sequence_for_frame = longest_sequence[1:]
+                sequence_for_frame = sequence_for_frame[:-2]
+            else:
+                sequence_for_frame = longest_sequence
+            # sequence_for_frame = longest_sequence[1:] # why different?
+            # sequence_for_frame = sequence_for_frame[:-2]
+            #sequence_for_frame = longest_sequence
             start_position += 2
-            sequence_for_frame, remainder = trim_sequence(sequence_for_frame)
-            stop_position = longest_interval[1] - remainder
+            stop_position -= 1
+            #sequence_for_frame, remainder = trim_sequence(sequence_for_frame,direction)
+            #stop_position = longest_interval[1] - remainder
+        elif longest_prediction in [2]:
+            sequence_for_frame = longest_sequence[2:]
+            sequence_for_frame = sequence_for_frame[:-1]
+            start_position += 2
+            stop_position -= 1
+        elif longest_prediction in [5]:
+            if longest_interval[1] in [148,149,150]:
+                sequence_for_frame = longest_sequence[2:]
+                sequence_for_frame = sequence_for_frame[:-1]
+            else:
+                sequence_for_frame = longest_sequence
+            start_position += 1
+            stop_position -= 2
 
-        if longest_prediction >= 3: # might need to do +1
-            corrected_start_position = max(len(seq) - int(stop_position - 1), 1)
-            corrected_stop_position = max(len(seq) - int(start_position - 1), 1)
-        else:
-            corrected_start_position = start_position
-            corrected_stop_position = stop_position
+            #sequence_for_frame, remainder = trim_sequence(sequence_for_frame,direction)
+            #stop_position = longest_interval[1] - remainder
+
+       # if longest_prediction >= 3: # might need to do +1
+       #     corrected_start_position = max(len(seq) - int(stop_position), 1)
+       #     corrected_stop_position = max(len(seq) - int(start_position - 1), 1)
+        #else:
+        corrected_start_position = start_position
+        corrected_stop_position = stop_position
 
     else:
-        sequence_for_frame = longest_sequence
+        if longest_prediction in [4]:
+            if longest_interval[1] in [148, 149, 150]:
+                sequence_for_frame = longest_sequence[1:]
+                sequence_for_frame = sequence_for_frame[:-2]
+        elif longest_prediction in [5]:
+            if longest_interval[1] in [148,149,150]:
+                sequence_for_frame = longest_sequence[2:]
+                sequence_for_frame = sequence_for_frame[:-1]
+        else:
+            sequence_for_frame = longest_sequence
 
         if longest_prediction >= 3:
             corrected_start_position = start_position #+ 1

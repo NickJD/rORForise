@@ -8,10 +8,12 @@ import gzip
 
 dir = "Genome_Processing"
 genomes = ["Mycoplasma_genitalium_G37"] #,"Staph"]
+#genomes = ["Staphylococcus_aureus_502A"]
 fragmentation_types = ["ART_errFree"]
 subgroups = ['Combined']
-methods = ["FragGeneScan","Pyrodigal","Naive-StORF-V1"]#,"Naive-StORF-V2","Naive-StORF-V3"] #,"Pyrodigal","FragGeneScan","FrameRate"]
+methods = ["FragGeneScan","Naive-StORF-V1"]#,"Naive-StORF-V2","Naive-StORF-V3"] #,"Pyrodigal","FragGeneScan","FrameRate"]
 #methods = ["Naive-StORF-V1"]
+#methods = ["Pyrodigal"]
 # Hardcoding Myco/Mycoplasma for now
 
 """ bedfile:
@@ -38,13 +40,17 @@ methods = ["FragGeneScan","Pyrodigal","Naive-StORF-V1"]#,"Naive-StORF-V2","Naive
 21 ID=CDS:AAC71217;Parent=transcript:AAC71217;protein_id=AAC71217  184
 """
 
+cor = {"Pyrodigal":[],"FragGeneScan":[],"Naive-StORF-V1":[]}
+incor = {"Pyrodigal":[],"FragGeneScan":[],"Naive-StORF-V1":[]}
+alt = {"Pyrodigal":[],"FragGeneScan":[],"Naive-StORF-V1":[]}
+
 def evaluate(genome_name, preds, bed_intersect_filename, method):
 
     correct_starts, incorrect_starts, alternative_starts, middle_alternative_starts, correct_stops, \
-        incorrect_stops, alternative_stops, middle_alternative_stops,  reads_with_predictions, \
+        incorrect_stops, alternative_stops, middle_alternative_stops,  number_of_CDS_mappings_with_predictions, \
         reads_without_predictions, correct_frames, incorrect_frames, correct_directions, incorrect_directions, \
-        prediction_ends_before_cds_starts, prediction_starts_after_cds_ends = 0,0, 0, 0, 0, 0 , 0, 0 , 0, 0, 0,0,0,0,0,0
-
+        prediction_ends_before_cds_starts, prediction_starts_after_cds_ends = 0,0, 0, 0, 0, 0 , 0, 0 , 0, [], 0,0,0,0,0,0
+    seen_read_names = []
     with gzip.open(bed_intersect_filename, 'rt') as f:
         csvr = csv.reader(f, delimiter="\t")
         for bed_row in csvr:
@@ -55,28 +61,29 @@ def evaluate(genome_name, preds, bed_intersect_filename, method):
                 read_name  = bed_row[3]
                 read_dir   = bed_row[5]
 
+                # if read_name == 'Chromosome-77316/1':
+                #     print("answer")
+                # else:
+                #     continue
 
-
-                if read_name in preds: # Not counting the number of preds but the number of reads with at least one pred
-                    reads_with_predictions += 1 #len(preds[read_name])
+                if read_name in preds:
                     cds_start = int(bed_row[15])
-                    cds_end   = int(bed_row[16])
-                    cds_dir   = bed_row[18]
+                    cds_end = int(bed_row[16])
+                    cds_dir = bed_row[18]
 
-                    if read_name == 'Chromosome-8822/2':
-                        print("answer")
+
+                    # Not counting the number of preds but the number of preds with at least one CDS mapping
+                    number_of_CDS_mappings_with_predictions += 1
+
 
                     for (pred_start, pred_end, pred_dir) in preds[read_name]:
                         #print(cds_start, cds_end, cds_dir, read_start, read_end, read_dir, pred_start, pred_end, pred_dir)
                         answer = cp.check_pred(cds_start, cds_end, cds_dir, read_start, read_end, read_dir, pred_start, pred_end, pred_dir)
 
-                        if read_name == 'Chromosome-77340/1':
-                            print(answer)
+
 
                         if 0 in answer:
                             correct_starts +=1
-                            # if 'Naive' in method:
-                            #     print(read_name)
                         if 1 in answer:
                             alternative_starts +=1
                         if 2 in answer:
@@ -85,12 +92,15 @@ def evaluate(genome_name, preds, bed_intersect_filename, method):
                             incorrect_starts +=1
                         if 4 in answer:
                             correct_stops +=1
+                            cor[method].append([read_name,pred_start,pred_end])
                         if 5 in answer:
                             alternative_stops +=1
+                            alt[method].append([read_name, pred_start, pred_end])
                         if 6 in answer:
                             middle_alternative_stops +=1
                         if 7 in answer:
                             incorrect_stops +=1
+                            incor[method].append([read_name,pred_start,pred_end])
                         if 8 in answer:
                             correct_frames +=1
                         if 9 in answer:
@@ -111,10 +121,18 @@ def evaluate(genome_name, preds, bed_intersect_filename, method):
 #                        print(read_name,"CDS Start/End: " + str(cds_start) + "/" + str(cds_end) + " Read Start/End: " + str(read_start) + "/" +
 #                              str(read_end),preds[read_name],answer)
                 else:
-                    reads_without_predictions +=1
-#                    print(read_name)
-    print("reads_with_predictions: " + str(reads_with_predictions))
-    print("reads_without_predictions: " + str(reads_without_predictions))
+                    reads_without_predictions.append(read_name)
+
+    set_a = set(seen_read_names)
+    set_b = set(reads_without_predictions)
+    unique_items_in_b =  set_b - set_a
+    count_reads_without_predictions = len(unique_items_in_b)
+
+    number_of_predictions = len([value for value in preds.values()])
+
+    print("number_of_predictions: " + str(number_of_predictions))
+    print("number_of_CDS_mappings_with_predictions: " + str(number_of_CDS_mappings_with_predictions)) # 1
+    #print("reads_without_predictions: " + str(count_reads_without_predictions))
     print("correct_starts: " + str(correct_starts))
     print("alternative_starts: " + str(alternative_starts))
     print("middle_alternative_starts: " + str(middle_alternative_starts))
@@ -174,5 +192,17 @@ def main():
 
         
 main()
+import sys
+sys.exit()
+for correct in cor["FragGeneScan"]:
+    for incorrect in incor["Naive-StORF-V1"]:
+        if correct[0] in incorrect[0]:
+            print()
+            #print(incorrect)
+    for incorrect in alt["Naive-StORF-V1"]:
+        if correct[0] in incorrect[0]:
+            print()
+            #print(incorrect)
 
+print("")
 # use as follows: python evaluate.py

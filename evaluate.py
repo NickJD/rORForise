@@ -154,10 +154,10 @@ def evaluate(genome_name, preds, bed_intersect_filename, method):
 def read_preds(genome_name, method, fragmentation_type, group):
     preds = collections.defaultdict(list)
     directory_path = os.path.join(dir, genome_name, method)
-    file_pattern = f"*_{fragmentation_type}_{group}.gff"
+    file_pattern = f"*_{fragmentation_type}_{group}.gff.gz"
     gff_name = glob.glob(os.path.join(directory_path, file_pattern))
     print(gff_name[0])
-    with open(gff_name[0]) as f:
+    with gzip.open(gff_name[0]) as f:
         csvr = csv.reader(f, delimiter="\t")
         for row in csvr:
             if row[0].startswith("#"):

@@ -4,14 +4,14 @@ from collections import defaultdict
 
 # Step 1: Parse BLAST output file to identify predictions with hits
 predictions_with_hit = set()
-with open('../Genome_Processing/Staphylococcus_aureus_502A/FragGeneScan/FragGeneScan_ART_errFree_Combined_DP_80', 'r') as blast_file:
+with open('../Genome_Processing/Mycoplasma_genitalium_G37/FragGeneScan/FragGeneScan_ART_errFree_Combined_DP_80', 'r') as blast_file:
     for line in blast_file:
         fields = line.strip().split('\t')
         predictions_with_hit.add(fields[0].replace('@', ''))  # Assuming the first column contains prediction IDs
 
 # Step 2: Compare predictions with hits to all predictions to identify those without hits
 predictions_all = defaultdict(str)
-with open('../Genome_Processing/Staphylococcus_aureus_502A/FragGeneScan/FragGeneScan_ART_errFree_Combined.faa', 'r') as predictions_file:
+with open('../Genome_Processing/Mycoplasma_genitalium_G37/FragGeneScan/FragGeneScan_ART_errFree_Combined.faa', 'r') as predictions_file:
     sequence = ''
     for line in predictions_file:
         if line.startswith('>'):
@@ -33,7 +33,7 @@ predictions_without_hit = {prediction_id: sequence for prediction_id, sequence i
 # Step 4: Search for IDs in Eggnog mapper output file and extract COG category for unmapped reads
 cog_categories_unmapped = defaultdict(int)
 with gzip.open(
-        '../Genome_Processing/Staphylococcus_aureus_502A/FragGeneScan/FragGeneScan_ART_errFree_Combined_Emapper.emapper.annotations.gz',
+        '../Genome_Processing/Mycoplasma_genitalium_G37/FragGeneScan/FragGeneScan_ART_errFree_Combined_Emapper.emapper.annotations.gz',
         'rt') as eggnog_file:
     for line in eggnog_file:
         if line.startswith('#'):
@@ -59,7 +59,7 @@ for cog, proportion in unmapped_proportions.items():
 # Step 7: Collect COG assignments for mapped reads
 cog_categories_mapped = defaultdict(int)
 with gzip.open(
-        '../Genome_Processing/Staphylococcus_aureus_502A/FragGeneScan/FragGeneScan_ART_errFree_Combined_Emapper.emapper.annotations.gz',
+        '../Genome_Processing/Mycoplasma_genitalium_G37/FragGeneScan/FragGeneScan_ART_errFree_Combined_Emapper.emapper.annotations.gz',
         'rt') as eggnog_file:
     for line in eggnog_file:
         if line.startswith('#'):
@@ -82,16 +82,82 @@ sorted_cogs = sorted(set(cog_categories_unmapped.keys()) | set(cog_categories_ma
 # Calculate differences between unmapped and mapped proportions
 diffs = [unmapped_proportions.get(cog, 0) - mapped_proportions.get(cog, 0) for cog in sorted_cogs]
 
-# Plot proportions
-plt.figure(figsize=(12, 8))
-plt.plot(sorted_cogs, [mapped_proportions.get(cog, 0) for cog in sorted_cogs], label='Mapped', linestyle='-')
-plt.plot(sorted_cogs, [unmapped_proportions.get(cog, 0) for cog in sorted_cogs], label='Unmapped', linestyle='-')
-plt.xlabel('COG Category', fontsize=24)
-plt.ylabel('Proportion (%)', fontsize=24)
-plt.title('Mapped vs Unmapped COG Proportions', fontsize=24)
-plt.xticks(rotation=45, ha='right', fontsize=14)
-plt.yticks(fontsize=14)
-plt.legend(fontsize=18)
-plt.grid(axis='y')
-plt.tight_layout()
-plt.show()
+# # Plot proportions
+# plt.figure(figsize=(12, 8))
+# plt.plot(sorted_cogs, [mapped_proportions.get(cog, 0) for cog in sorted_cogs], label='Mapped', linestyle='-')
+# plt.plot(sorted_cogs, [unmapped_proportions.get(cog, 0) for cog in sorted_cogs], label='Unmapped', linestyle='-')
+# plt.xlabel('COG Category', fontsize=24)
+# plt.ylabel('Proportion (%)', fontsize=24)
+# plt.title('Mapped vs Unmapped COG Proportions', fontsize=24)
+# plt.xticks(rotation=45, ha='right', fontsize=14)
+# plt.yticks(fontsize=14)
+# plt.legend(fontsize=18)
+# plt.grid(axis='y')
+# plt.tight_layout()
+# plt.show()
+
+without_hits = []
+for key, value in predictions_without_hit.items():
+    without_hits.append(key.split('_')[0])
+
+
+
+unmapped_reads = defaultdict(str)
+with open('../Genome_Processing/Mycoplasma_genitalium_G37/Processing/ART_Simulated_Reads/Myco_ART_errFree_Combined.fasta', 'r') as reads_file:
+    sequence = ''
+    for line in reads_file:
+        if line.startswith('>'):
+            if sequence:  # If there's a2 sequence accumulated, add it to the dictionary
+                if prediction_id in without_hits:
+                    unmapped_reads[prediction_id] = sequence
+                sequence = ''  # Reset sequence
+
+            prediction_id = line.strip().replace('>', '').replace('@', '')
+        else:
+            sequence += line.strip()  # Accumulate the sequence
+
+    # Add the last sequence since there's no new header after it
+    if sequence:
+        if prediction_id in without_hits:
+            unmapped_reads[prediction_id] = sequence
+
+# Write unmapped predictions to a FASTA file
+output = open(
+    '../Genome_Processing/Mycoplasma_genitalium_G37/FragGeneScan/FragGeneScan_ART_errFree_Combined_Unmapped_reads.fasta',
+    'w')
+for key, value in unmapped_reads.items():
+    output.write('>' + key + '\n' + value + '\n')
+
+
+
+with_hits = []
+for key in predictions_with_hit:
+    without_hits.append(key.split('_')[0])
+
+
+mapped_reads = defaultdict(str)
+with open('../Genome_Processing/Mycoplasma_genitalium_G37/Processing/ART_Simulated_Reads/Myco_ART_errFree_Combined.fasta', 'r') as reads_file:
+    sequence = ''
+    for line in reads_file:
+        if line.startswith('>'):
+            if sequence:  # If there's a2 sequence accumulated, add it to the dictionary
+                if prediction_id in with_hits:
+                    mapped_reads[prediction_id] = sequence
+                sequence = ''  # Reset sequence
+
+            prediction_id = line.strip().replace('>', '').replace('@', '')
+        else:
+            sequence += line.strip()  # Accumulate the sequence
+
+    # Add the last sequence since there's no new header after it
+    if sequence:
+        if prediction_id in with_hits:
+            mapped_reads[prediction_id] = sequence
+
+# Write unmapped predictions to a FASTA file
+output = open(
+    '../Genome_Processing/Mycoplasma_genitalium_G37/FragGeneScan/FragGeneScan_ART_errFree_Combined_Mapped_reads.fasta',
+    'w')
+for key, value in mapped_reads.items():
+    output.write('>' + key + '\n' + value + '\n')
+

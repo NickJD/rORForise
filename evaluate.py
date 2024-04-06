@@ -157,7 +157,7 @@ def read_preds(genome_name, method, fragmentation_type, group):
     file_pattern = f"*_{fragmentation_type}_{group}.gff.gz"
     gff_name = glob.glob(os.path.join(directory_path, file_pattern))
     print(gff_name[0])
-    with gzip.open(gff_name[0]) as f:
+    with gzip.open(gff_name[0],'rt') as f:
         csvr = csv.reader(f, delimiter="\t")
         for row in csvr:
             if row[0].startswith("#"):

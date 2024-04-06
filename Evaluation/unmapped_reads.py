@@ -97,7 +97,7 @@ plt.show()
 
 # Write unmapped predictions to a FASTA file
 output = open(
-    '../Genome_Processing/Mycoplasma_genitalium_G37/FragGeneScan/FragGeneScan_ART_errFree_Combined_Unmapped_reads.fasta',
+    '../Genome_Processing/Mycoplasma_genitalium_G37/FragGeneScan/FragGeneScan_ART_errFree_Combined_Unmapped_predictions.fasta',
     'w')
 for key, value in predictions_without_hit.items():
     output.write('>' + key + '\n' + value + '\n')

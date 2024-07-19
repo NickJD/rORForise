@@ -44,7 +44,7 @@ cor = {"Pyrodigal":[],"FragGeneScan":[],"Naive-StORF-V1":[]}
 incor = {"Pyrodigal":[],"FragGeneScan":[],"Naive-StORF-V1":[]}
 alt = {"Pyrodigal":[],"FragGeneScan":[],"Naive-StORF-V1":[]}
 
-def evaluate(genome_name, preds, bed_intersect_filename, method):
+def evaluate(genome_name, preds, intersect_filename, method):
 
     correct_starts, incorrect_starts, alternative_starts, middle_alternative_starts, correct_stops, \
         incorrect_stops, alternative_stops, middle_alternative_stops,  number_of_CDS_mappings_with_predictions, \
@@ -53,38 +53,22 @@ def evaluate(genome_name, preds, bed_intersect_filename, method):
     reads_without_predictions = []
     seen_read_names = []
 
-    with gzip.open(bed_intersect_filename, 'rt') as f:
+    with gzip.open(intersect_filename, 'rt') as f:
         csvr = csv.reader(f, delimiter="\t")
         for bed_row in csvr:
-            if bed_row[14] == "CDS":
-
-                # If reading from a bed file made by bed-intersect, the reads will have their start positions decremented
-                # because bedtools has 0-based half open intervals, whereas bamfiles and GFFs are 1-based. 
-                read_start = int(bed_row[1]) +1 # 
-                read_end   = int(bed_row[2])
-                read_name  = bed_row[3]
-                read_dir   = bed_row[5]
-
-                # if read_name == 'Chromosome-1802/1':
-                #     print("answer")
-                # else:
-                #     continue
+            if bed_row[6] == "CDS":
+                read_start = int(bed_row[2]) #+1 No longer needed after using my tool for intersection
+                read_end   = int(bed_row[3])
+                read_name  = bed_row[1]
+                read_dir   = bed_row[4]
 
                 if read_name in preds:
-                    cds_start = int(bed_row[15])
-                    cds_end = int(bed_row[16])
-                    cds_dir = bed_row[18]
-
-
-                    # Not counting the number of preds but the number of preds with at least one CDS mapping
+                    cds_start = int(bed_row[7])
+                    cds_end = int(bed_row[8])
+                    cds_dir = bed_row[9]
                     number_of_CDS_mappings_with_predictions += 1
-
-
                     for (pred_start, pred_end, pred_dir) in preds[read_name]:
-                        #print(cds_start, cds_end, cds_dir, read_start, read_end, read_dir, pred_start, pred_end, pred_dir)
                         answer = cp.check_pred(cds_start, cds_end, cds_dir, read_start, read_end, read_dir, pred_start, pred_end, pred_dir)
-
-
 
                         if 0 in answer:
                             correct_starts +=1
@@ -117,9 +101,6 @@ def evaluate(genome_name, preds, bed_intersect_filename, method):
                             prediction_ends_before_cds_starts +=1
                         if 13 in answer:
                             prediction_starts_after_cds_ends +=1
-
-#                        print(read_name,"CDS Start/End: " + str(cds_start) + "/" + str(cds_end) + " Read Start/End: " + str(read_start) + "/" +
-#                              str(read_end),preds[read_name],answer)
                 else:
                     reads_without_predictions.append(read_name)
 
@@ -155,8 +136,8 @@ def read_preds(genome_name, method, fragmentation_type, group):
     directory_path = os.path.join(dir, genome_name, method)
     file_pattern = f"*_{fragmentation_type}_{group}.gff.gz"
     gff_name = glob.glob(os.path.join(directory_path, file_pattern))
-
-    with gzip.open(gff_name[0],'rt') as f:
+    print(gff_name[0])
+    with gzip.open(gff_name[0], 'rt', encoding='utf-8')  as f:
         csvr = csv.reader(f, delimiter="\t")
         for row in csvr:
             if row[0].startswith("#"): # ignore the rows that are comments
@@ -177,7 +158,7 @@ def main():
     for genome_name in genomes:
         print(genome_name)
         datadir = dir + "/" + genome_name + "/Processing"
-        intersect_bed_filename = datadir + "/"+genome_name+"_Reads_Intersect.bed.gz"
+        intersect_bed_filename = datadir + "/"+genome_name+"_Reads_Intersect.tsv.gz"
 
         for method in methods:
             print(method)

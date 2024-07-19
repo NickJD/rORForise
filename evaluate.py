@@ -5,13 +5,12 @@ import csv
 import os, glob
 import gzip
 
-
 dir = "Genome_Processing"
-genomes = ["Mycoplasma_genitalium_G37","Staphylococcus_aureus_502A"] #,"Staph"]
+genomes = ["Mycoplasma_genitalium_G37"] #,"Staphylococcus_aureus_502A"] 
 #genomes = ["Staphylococcus_aureus_502A"]
 fragmentation_types = ["ART_errFree"]
 subgroups = ['Combined']
-methods = ["FragGeneScan","Pyrodigal","Naive-StORF-V1"]#,"Naive-StORF-V2","Naive-StORF-V3"] #,"Pyrodigal","FragGeneScan","FrameRate"]
+methods = ["FragGeneScan"] #,"Pyrodigal","Naive-StORF-V1"]#,"Naive-StORF-V2","Naive-StORF-V3"] 
 
 #methods = ["Pyrodigal"]
 #methods = ["Naive-StORF-V1"]
@@ -49,15 +48,19 @@ def evaluate(genome_name, preds, bed_intersect_filename, method):
 
     correct_starts, incorrect_starts, alternative_starts, middle_alternative_starts, correct_stops, \
         incorrect_stops, alternative_stops, middle_alternative_stops,  number_of_CDS_mappings_with_predictions, \
-        reads_without_predictions, correct_frames, incorrect_frames, correct_directions, incorrect_directions, \
-        prediction_ends_before_cds_starts, prediction_starts_after_cds_ends = 0,0, 0, 0, 0, 0 , 0, 0 , 0, [], 0,0,0,0,0,0
+        correct_frames, incorrect_frames, correct_directions, incorrect_directions, \
+        prediction_ends_before_cds_starts, prediction_starts_after_cds_ends = 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+    reads_without_predictions = []
     seen_read_names = []
+
     with gzip.open(bed_intersect_filename, 'rt') as f:
         csvr = csv.reader(f, delimiter="\t")
         for bed_row in csvr:
             if bed_row[14] == "CDS":
 
-                read_start = int(bed_row[1])
+                # If reading from a bed file made by bed-intersect, the reads will have their start positions decremented
+                # because bedtools has 0-based half open intervals, whereas bamfiles and GFFs are 1-based. 
+                read_start = int(bed_row[1]) +1 # 
                 read_end   = int(bed_row[2])
                 read_name  = bed_row[3]
                 read_dir   = bed_row[5]
@@ -115,10 +118,6 @@ def evaluate(genome_name, preds, bed_intersect_filename, method):
                         if 13 in answer:
                             prediction_starts_after_cds_ends +=1
 
-
-
-
-
 #                        print(read_name,"CDS Start/End: " + str(cds_start) + "/" + str(cds_end) + " Read Start/End: " + str(read_start) + "/" +
 #                              str(read_end),preds[read_name],answer)
                 else:
@@ -156,11 +155,11 @@ def read_preds(genome_name, method, fragmentation_type, group):
     directory_path = os.path.join(dir, genome_name, method)
     file_pattern = f"*_{fragmentation_type}_{group}.gff.gz"
     gff_name = glob.glob(os.path.join(directory_path, file_pattern))
-    print(gff_name[0])
+
     with gzip.open(gff_name[0],'rt') as f:
         csvr = csv.reader(f, delimiter="\t")
         for row in csvr:
-            if row[0].startswith("#"):
+            if row[0].startswith("#"): # ignore the rows that are comments
                 continue
             else:
                 # do we need to check if row[2] == "CDS"?
@@ -171,7 +170,6 @@ def read_preds(genome_name, method, fragmentation_type, group):
                 pred_dir = row[6]
                 preds[read_name].append((pred_start, pred_end, pred_dir))
 
-    #print(preds)
     return preds
                 
     
@@ -191,19 +189,22 @@ def main():
                     preds = read_preds(genome_name, method, fragmentation_type, group)
                     evaluate(genome_name, preds, intersect_bed_filename, method)
 
-        
-main()
-import sys
-sys.exit()
-for correct in cor["FragGeneScan"]:
-    for incorrect in incor["Naive-StORF-V1"]:
-        if correct[0] in incorrect[0]:
-            print()
-            #print(incorrect)
-    for incorrect in alt["Naive-StORF-V1"]:
-        if correct[0] in incorrect[0]:
-            print()
-            #print(incorrect)
+        import sys
+        sys.exit()
+        for correct in cor["FragGeneScan"]:
+            for incorrect in incor["Naive-StORF-V1"]:
+                if correct[0] in incorrect[0]:
+                    print()
+                    #print(incorrect)
+            for incorrect in alt["Naive-StORF-V1"]:
+                if correct[0] in incorrect[0]:
+                    print()
+                    #print(incorrect)
+                    
 
 print("")
+
+
+                    
+main()
 # use as follows: python evaluate.py

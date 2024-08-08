@@ -6,8 +6,8 @@ import os, glob
 import gzip
 
 dir = "Genome_Processing"
-genomes = ["Mycoplasma_genitalium_G37"] #,"Staphylococcus_aureus_502A"] 
-#genomes = ["Staphylococcus_aureus_502A"]
+#genomes = ["Mycoplasma_genitalium_G37"] #,"Staphylococcus_aureus_502A"] 
+genomes = ["Staphylococcus_aureus_502A"]
 fragmentation_types = ["ART_errFree"]
 subgroups = ['Combined']
 methods = ["FragGeneScan"] #,"Pyrodigal","Naive-StORF-V1"]#,"Naive-StORF-V2","Naive-StORF-V3"] 
@@ -16,48 +16,28 @@ methods = ["FragGeneScan"] #,"Pyrodigal","Naive-StORF-V1"]#,"Naive-StORF-V2","Na
 #methods = ["Naive-StORF-V1"]
 # Hardcoding Myco/Mycoplasma for now
 
-""" bedfile:
-1 Chromosome
-2 848
-3 1032
-4 Chromosome-41280/1
-5 42
-6 +
-7 848
-8 1032
-9 0,0,0
-10 1
-11 184,
-12 0,
-13 Chromosome
-14 ena
-15 CDS
-16 686
-17 1828
-18 .
-19 +
-20 0
-21 ID=CDS:AAC71217;Parent=transcript:AAC71217;protein_id=AAC71217  184
-"""
 
-cor = {"Pyrodigal":[],"FragGeneScan":[],"Naive-StORF-V1":[]}
-incor = {"Pyrodigal":[],"FragGeneScan":[],"Naive-StORF-V1":[]}
-alt = {"Pyrodigal":[],"FragGeneScan":[],"Naive-StORF-V1":[]}
+#cor = {"Pyrodigal":[],"FragGeneScan":[],"Naive-StORF-V1":[]}
+#incor = {"Pyrodigal":[],"FragGeneScan":[],"Naive-StORF-V1":[]}
+#alt = {"Pyrodigal":[],"FragGeneScan":[],"Naive-StORF-V1":[]}
 
 def evaluate(genome_name, preds, intersect_filename, method):
 
-    correct_starts, incorrect_starts, alternative_starts, middle_alternative_starts, correct_stops, \
-        incorrect_stops, alternative_stops, middle_alternative_stops,  number_of_CDS_mappings_with_predictions, \
-        correct_frames, incorrect_frames, correct_directions, incorrect_directions, \
-        prediction_ends_before_cds_starts, prediction_starts_after_cds_ends = 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+    number_of_CDS_mappings_with_predictions = 0
     reads_without_predictions = []
     seen_read_names = []
 
+    answer_counts = collections.defaultdict(int)
+    incorrect_stop_codons = collections.defaultdict(int)
+    incorrect_stop_code = cp.answers["incorrect stop"]
+
     with gzip.open(intersect_filename, 'rt') as f:
-        csvr = csv.reader(f, delimiter="\t")
+        csvr = csv.reader(f, delimiter="\t") 
+        header = next(csvr) # ignore single header line
+
         for bed_row in csvr:
             if bed_row[6] == "CDS":
-                read_start = int(bed_row[2]) #+1 No longer needed after using my tool for intersection
+                read_start = int(bed_row[2]) 
                 read_end   = int(bed_row[3])
                 read_name  = bed_row[1]
                 read_dir   = bed_row[4]
@@ -66,41 +46,19 @@ def evaluate(genome_name, preds, intersect_filename, method):
                     cds_start = int(bed_row[7])
                     cds_end = int(bed_row[8])
                     cds_dir = bed_row[9]
+                    read_seq = bed_row[10]
                     number_of_CDS_mappings_with_predictions += 1
                     for (pred_start, pred_end, pred_dir) in preds[read_name]:
-                        answer = cp.check_pred(cds_start, cds_end, cds_dir, read_start, read_end, read_dir, pred_start, pred_end, pred_dir)
+                        
+                        # answer_details is a set of pairs: (num, codon)
+                        answer_details = cp.check_pred(cds_start, cds_end, cds_dir, read_start, read_end, read_dir, pred_start, pred_end, pred_dir,read_seq)
 
-                        if 0 in answer:
-                            correct_starts +=1
-                        if 1 in answer:
-                            alternative_starts +=1
-                        if 2 in answer:
-                            middle_alternative_starts +=1
-                        if 3 in answer:
-                            incorrect_starts +=1
-                        if 4 in answer:
-                            correct_stops +=1
-                            cor[method].append([read_name,pred_start,pred_end])
-                        if 5 in answer:
-                            alternative_stops +=1
-                            alt[method].append([read_name, pred_start, pred_end])
-                        if 6 in answer:
-                            middle_alternative_stops +=1
-                        if 7 in answer:
-                            incorrect_stops +=1
-                            incor[method].append([read_name,pred_start,pred_end])
-                        if 8 in answer:
-                            correct_frames +=1
-                        if 9 in answer:
-                            incorrect_frames +=1
-                        if 10 in answer:
-                            correct_directions +=1
-                        if 11 in answer:
-                            incorrect_directions +=1
-                        if 12 in answer:
-                            prediction_ends_before_cds_starts +=1
-                        if 13 in answer:
-                            prediction_starts_after_cds_ends +=1
+                        # Count the types of answers
+                        for (answer, codon) in answer_details:
+                            answer_counts[answer] += 1
+                            #incor[method].append([read_name,pred_start,pred_end])
+                            if answer == incorrect_stop_code and codon is not None:
+                                incorrect_stop_codons[codon] += 1 
                 else:
                     reads_without_predictions.append(read_name)
 
@@ -111,23 +69,14 @@ def evaluate(genome_name, preds, intersect_filename, method):
 
     number_of_predictions = len([value for value in preds.values()])
 
-    print("number_of_predictions: " + str(number_of_predictions))
-    print("number_of_CDS_mappings_with_predictions: " + str(number_of_CDS_mappings_with_predictions)) # 1
-    #print("reads_without_predictions: " + str(count_reads_without_predictions))
-    print("correct_starts: " + str(correct_starts))
-    print("alternative_starts: " + str(alternative_starts))
-    print("middle_alternative_starts: " + str(middle_alternative_starts))
-    print("incorrect_starts: " + str(incorrect_starts))
-    print("correct_stops: " + str(correct_stops))
-    print("alternative_stops: " + str(alternative_stops))
-    print("middle_alternative_stops: " + str(middle_alternative_stops))
-    print("incorrect_stops: " + str(incorrect_stops))
-    print("correct_frames: " + str(correct_frames))
-    print("incorrect_frames: " + str(incorrect_frames))
-    print("correct_directions: " + str(correct_directions))
-    print("incorrect_directions: " + str(incorrect_directions))
-    print("prediction_ends_before_cds_starts: " + str(prediction_ends_before_cds_starts))
-    print("prediction_starts_after_cds_ends: " + str(prediction_starts_after_cds_ends))
+    # Print the counted answers
+    for (answer,count) in sorted(answer_counts.items()):
+        print(f'{cp.inverse_answers[answer]}: {count}')
+        
+    print("incorrect stop codons:")
+    for (codon,count) in sorted(incorrect_stop_codons.items()):
+        print(f' {codon} {count:4d}')
+
                         
 
 # This returns a dictionary of lists. Key is read name. List contains all preds that made for this read. Each pred has (start, stop, dir).

@@ -4,6 +4,7 @@ import check_pred as cp
 import csv
 import os, glob
 import gzip
+import math
 
 dir = "Genome_Processing"
 #genomes = ["Mycoplasma_genitalium_G37"] #,"Staphylococcus_aureus_502A"] 
@@ -21,9 +22,21 @@ methods = ["FragGeneScan"] #,"Pyrodigal","Naive-StORF-V1"]#,"Naive-StORF-V2","Na
 #incor = {"Pyrodigal":[],"FragGeneScan":[],"Naive-StORF-V1":[]}
 #alt = {"Pyrodigal":[],"FragGeneScan":[],"Naive-StORF-V1":[]}
 
+#GC_prob = 0.3169 # Myco
+GC_prob = 0.3292 # Staph
+
+
+def expect(codon, total):
+    prob = math.prod([GC_prob/2 if (c == 'G' or c=='C') else (1-GC_prob)/2 for c in codon])
+    return prob*total
+
+
+
 def evaluate(genome_name, preds, intersect_filename, method):
 
     number_of_CDS_mappings_with_predictions = 0
+    number_of_on_target_preds = 0
+
     reads_without_predictions = []
     seen_read_names = []
 
@@ -49,6 +62,8 @@ def evaluate(genome_name, preds, intersect_filename, method):
                     read_seq = bed_row[10]
                     number_of_CDS_mappings_with_predictions += 1
                     for (pred_start, pred_end, pred_dir) in preds[read_name]:
+
+                        number_of_on_target_preds += 1
                         
                         # answer_details is a set of pairs: (num, codon)
                         answer_details = cp.check_pred(cds_start, cds_end, cds_dir, read_start, read_end, read_dir, pred_start, pred_end, pred_dir,read_seq)
@@ -58,7 +73,7 @@ def evaluate(genome_name, preds, intersect_filename, method):
                             answer_counts[answer] += 1
                             #incor[method].append([read_name,pred_start,pred_end])
                             if answer == incorrect_stop_code and codon is not None:
-                                incorrect_stop_codons[codon] += 1 
+                                incorrect_stop_codons[codon] += 1
                 else:
                     reads_without_predictions.append(read_name)
 
@@ -67,20 +82,25 @@ def evaluate(genome_name, preds, intersect_filename, method):
     unique_items_in_b =  set_b - set_a
     count_reads_without_predictions = len(unique_items_in_b)
 
-    number_of_predictions = len([value for value in preds.values()])
+    #number_of_predictions = len([value for value in preds.values()])
 
+    print("Number of CDS mappings with at least one pred:", number_of_CDS_mappings_with_predictions)
+    print("Number of on-target preds:", number_of_on_target_preds)
     # Print the counted answers
     for (answer,count) in sorted(answer_counts.items()):
         print(f'{cp.inverse_answers[answer]}: {count}')
-        
+
     print("incorrect stop codons:")
+    print(" codon\tcount\texpected")
     for (codon,count) in sorted(incorrect_stop_codons.items()):
-        print(f' {codon} {count:4d}')
+        print(f' {codon}\t{count:4d}\t{expect(codon, sum(incorrect_stop_codons.values())):4.0f}')
+
 
                         
 
 # This returns a dictionary of lists. Key is read name. List contains all preds that made for this read. Each pred has (start, stop, dir).
 def read_preds(genome_name, method, fragmentation_type, group):
+    total_preds = 0
     preds = collections.defaultdict(list)
     directory_path = os.path.join(dir, genome_name, method)
     file_pattern = f"*_{fragmentation_type}_{group}.gff.gz"
@@ -99,8 +119,10 @@ def read_preds(genome_name, method, fragmentation_type, group):
                 pred_end = int(row[4])
                 pred_dir = row[6]
                 preds[read_name].append((pred_start, pred_end, pred_dir))
+                total_preds += 1
 
-    return preds
+    # Return the count and the dictionary
+    return (total_preds, preds)
                 
     
 def main():
@@ -116,7 +138,8 @@ def main():
                 print(fragmentation_type)
 
                 for group in subgroups:
-                    preds = read_preds(genome_name, method, fragmentation_type, group)
+                    (total_preds, preds) = read_preds(genome_name, method, fragmentation_type, group)
+                    print("Number of predictions made for reads:", total_preds)
                     evaluate(genome_name, preds, intersect_bed_filename, method)
 
         import sys

@@ -7,42 +7,55 @@ import gzip
 import math
 
 dir = "Genome_Processing"
-#genomes = ["Mycoplasma_genitalium_G37"] #,"Staphylococcus_aureus_502A"] 
-genomes = ["Staphylococcus_aureus_502A"]
+
+genomes = ["Mycoplasma_genitalium_G37"] 
+#genomes = ["Staphylococcus_aureus_502A"]
+GC_prob = 0.3169 # Myco
+#GC_prob = 0.3292 # Staph
+
 fragmentation_types = ["ART_errFree"]
 subgroups = ['Combined']
-methods = ["FragGeneScan"] #,"Pyrodigal","Naive-StORF-V1"]#,"Naive-StORF-V2","Naive-StORF-V3"] 
 
+methods = ["FragGeneScan"] #,"Pyrodigal","Naive-StORF-V1"]#,"Naive-StORF-V2","Naive-StORF-V3"] 
 #methods = ["Pyrodigal"]
 #methods = ["Naive-StORF-V1"]
-# Hardcoding Myco/Mycoplasma for now
 
 
-#cor = {"Pyrodigal":[],"FragGeneScan":[],"Naive-StORF-V1":[]}
-#incor = {"Pyrodigal":[],"FragGeneScan":[],"Naive-StORF-V1":[]}
-#alt = {"Pyrodigal":[],"FragGeneScan":[],"Naive-StORF-V1":[]}
-
-#GC_prob = 0.3169 # Myco
-GC_prob = 0.3292 # Staph
 
 
+# What is the expected number of occurrences of this codon given the GC probability
+# in the genome and the total number of codons?
 def expect(codon, total):
     prob = math.prod([GC_prob/2 if (c == 'G' or c=='C') else (1-GC_prob)/2 for c in codon])
     return prob*total
 
+def print_with_expect(answer_type, codon_counts):
+    print(answer_type+":")
+    print(" codon\tcount\texpected")
+    chosen = codon_counts[cp.answers[answer_type]]
+    total = sum(chosen.values())
+    for (codon,count) in sorted(chosen.items()):
+        print(f' {codon}\t{count:4d}\t{expect(codon, total):4.0f}')
+
+def print_without_expect(answer_type, codon_counts):
+    print(answer_type+":")
+    print(" codon\tcount")
+    chosen = codon_counts[cp.answers[answer_type]]
+    for (codon,count) in sorted(chosen.items()):
+        print(f' {codon}\t{count:4d}')
 
 
+        
 def evaluate(genome_name, preds, intersect_filename, method):
 
     number_of_CDS_mappings_with_predictions = 0
     number_of_on_target_preds = 0
 
-    reads_without_predictions = []
-    seen_read_names = []
+    reads_without_predictions = set()
+    seen_read_names = set()
 
     answer_counts = collections.defaultdict(int)
-    incorrect_stop_codons = collections.defaultdict(int)
-    incorrect_stop_code = cp.answers["incorrect stop"]
+    codon_counts = {}
 
     with gzip.open(intersect_filename, 'rt') as f:
         csvr = csv.reader(f, delimiter="\t") 
@@ -54,6 +67,7 @@ def evaluate(genome_name, preds, intersect_filename, method):
                 read_end   = int(bed_row[3])
                 read_name  = bed_row[1]
                 read_dir   = bed_row[4]
+                seen_read_names.add(read_name)
 
                 if read_name in preds:
                     cds_start = int(bed_row[7])
@@ -71,32 +85,32 @@ def evaluate(genome_name, preds, intersect_filename, method):
                         # Count the types of answers
                         for (answer, codon) in answer_details:
                             answer_counts[answer] += 1
-                            #incor[method].append([read_name,pred_start,pred_end])
-                            if answer == incorrect_stop_code and codon is not None:
-                                incorrect_stop_codons[codon] += 1
+                            if codon is not None: 
+                                if answer not in codon_counts:
+                                    codon_counts[answer] = collections.defaultdict(int)
+                                codon_counts[answer][codon] += 1
                 else:
-                    reads_without_predictions.append(read_name)
+                    reads_without_predictions.add(read_name)
 
-    set_a = set(seen_read_names)
-    set_b = set(reads_without_predictions)
-    unique_items_in_b =  set_b - set_a
-    count_reads_without_predictions = len(unique_items_in_b)
-
-    #number_of_predictions = len([value for value in preds.values()])
-
-    print("Number of CDS mappings with at least one pred:", number_of_CDS_mappings_with_predictions)
+    print("Number of CDS-aligned reads:", len(seen_read_names))
+    print("Number of CDS-aligned reads without predictions:", len(reads_without_predictions))
+    print("Number of CDS-aligned reads with at least one pred:", number_of_CDS_mappings_with_predictions)
+    print("Number of predictions:", len([value for value in preds.values()]))
     print("Number of on-target preds:", number_of_on_target_preds)
+    
     # Print the counted answers
     for (answer,count) in sorted(answer_counts.items()):
         print(f'{cp.inverse_answers[answer]}: {count}')
 
-    print("incorrect stop codons:")
-    print(" codon\tcount\texpected")
-    for (codon,count) in sorted(incorrect_stop_codons.items()):
-        print(f' {codon}\t{count:4d}\t{expect(codon, sum(incorrect_stop_codons.values())):4.0f}')
+    print_without_expect("correct stop", codon_counts)
+    print_without_expect("alternative stop", codon_counts)
+    print_with_expect("incorrect stop", codon_counts)
+    print_without_expect("correct start", codon_counts)
+    print_without_expect("alternative start", codon_counts)
+    print_with_expect("incorrect start", codon_counts)
 
 
-                        
+
 
 # This returns a dictionary of lists. Key is read name. List contains all preds that made for this read. Each pred has (start, stop, dir).
 def read_preds(genome_name, method, fragmentation_type, group):
@@ -142,20 +156,6 @@ def main():
                     print("Number of predictions made for reads:", total_preds)
                     evaluate(genome_name, preds, intersect_bed_filename, method)
 
-        import sys
-        sys.exit()
-        for correct in cor["FragGeneScan"]:
-            for incorrect in incor["Naive-StORF-V1"]:
-                if correct[0] in incorrect[0]:
-                    print()
-                    #print(incorrect)
-            for incorrect in alt["Naive-StORF-V1"]:
-                if correct[0] in incorrect[0]:
-                    print()
-                    #print(incorrect)
-                    
-
-print("")
 
 
                     

@@ -23,7 +23,7 @@ def is_ok_start_codon(codon):
      return (codon in start_codons)
 
 def is_ok_stop_codon(codon):
-     #return True
+     # return True
      return (codon in stop_codons)
 
 # -----------------------------------------------------------
@@ -213,8 +213,9 @@ def check_pred(cds_open, cds_close, cds_direction,
         pred_before_start_of_cds = pred_cds_end < cds_open
         pred_after_end_of_cds = pred_cds_start > cds_close 
 
-        pred_start_codon = _rev_comp(read_seq[pred_end-3:pred_end])
-        pred_end_codon   = _rev_comp(read_seq[pred_start-1:pred_start-1+3])
+        # read is '-' so in samfile and tsv file the sequence will already be reverse complemented
+        pred_start_codon = read_seq[read_end-pred_end:read_end-pred_end+3] 
+        pred_end_codon   = read_seq[read_end-pred_start-3+1:read_end-pred_start+1] 
 
         #print(read_open, read_close, pred_cds_start, pred_cds_end, start_diff, stop_diff, read_captures_cds_start, read_captures_cds_end, pred_before_start_of_cds, pred_after_end_of_cds, pred_start_codon, pred_end_codon)
         #print(read_seq)
@@ -265,8 +266,8 @@ def check_pred(cds_open, cds_close, cds_direction,
         pred_before_start_of_cds = pred_cds_end > cds_close
         pred_after_end_of_cds = pred_cds_start < cds_open
 
-        pred_start_codon = read_seq[pred_start-1 : pred_start-1+3]
-        pred_end_codon   = read_seq[pred_end-3 : pred_end]
+        pred_start_codon = _rev_comp(read_seq)[pred_start-1:pred_start-1+3] 
+        pred_end_codon   = _rev_comp(read_seq)[pred_end-3:pred_end] 
 
         #print(read_start, read_end, pred_start, pred_end, start_diff, stop_diff, read_captures_cds_start, read_captures_cds_end, pred_before_start_of_cds, pred_after_end_of_cds, pred_start_codon, pred_end_codon)
         #print(read_seq)

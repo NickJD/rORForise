@@ -15,6 +15,7 @@ GC_prob = 0.3169 # Myco
 
 fragmentation_types = ["ART_errFree"]
 subgroups = ['Combined']
+#subgroups = ['Combined_FGS_sanger_5']
 
 methods = ["FragGeneScan"] #,"Pyrodigal","Naive-StORF-V1"]#,"Naive-StORF-V2","Naive-StORF-V3"] 
 #methods = ["Pyrodigal"]
@@ -143,7 +144,7 @@ def main():
     for genome_name in genomes:
         print(genome_name)
         datadir = dir + "/" + genome_name + "/Processing"
-        intersect_bed_filename = datadir + "/"+genome_name+"_Reads_Intersect.tsv.gz"
+        intersect_bed_filename = datadir + "/"+genome_name+"_Reads_Intersect_CDS.tsv.gz"
 
         for method in methods:
             print(method)

@@ -213,9 +213,9 @@ def check_pred(cds_open, cds_close, cds_direction,
         pred_before_start_of_cds = pred_cds_end < cds_open
         pred_after_end_of_cds = pred_cds_start > cds_close 
 
-        # read is '-' so in samfile and tsv file the sequence will already be reverse complemented
-        pred_start_codon = read_seq[read_end-pred_end:read_end-pred_end+3] 
-        pred_end_codon   = read_seq[read_end-pred_start-3+1:read_end-pred_start+1] 
+        # read is '-' so in samfile and tsv file the sequence will be reverse complemented
+        pred_start_codon = _rev_comp(read_seq)[read_end-pred_end:read_end-pred_end+3] 
+        pred_end_codon   = _rev_comp(read_seq)[read_end-pred_start-3+1:read_end-pred_start+1]
 
         #print(read_open, read_close, pred_cds_start, pred_cds_end, start_diff, stop_diff, read_captures_cds_start, read_captures_cds_end, pred_before_start_of_cds, pred_after_end_of_cds, pred_start_codon, pred_end_codon)
         #print(read_seq)
@@ -240,15 +240,15 @@ def check_pred(cds_open, cds_close, cds_direction,
         pred_before_start_of_cds = pred_cds_start > cds_close
         pred_after_end_of_cds = pred_cds_end < cds_open 
         
-        pred_start_codon = _rev_comp(read_seq[pred_end-3:pred_end]) 
-        pred_end_codon   = _rev_comp(read_seq[pred_start-1:pred_start-1+3]) 
+        pred_start_codon = _rev_comp(read_seq[pred_end-3:pred_end])
+        pred_end_codon   = _rev_comp(read_seq[pred_start-1:pred_start-1+3])
 
         #print(read_start, read_end, pred_start, pred_end, start_diff, stop_diff, read_captures_cds_start, read_captures_cds_end, pred_before_start_of_cds, pred_after_end_of_cds, pred_start_codon, pred_end_codon)
         #print(read_seq)
 
         answer_vals = _collect_answers(read_start, read_end, pred_start, pred_end, start_diff, stop_diff, read_captures_cds_start, read_captures_cds_end, pred_before_start_of_cds, pred_after_end_of_cds, pred_start_codon, pred_end_codon)
 
-        
+
     elif category == ('-','-','+'):
         #print("category 8")
         read_start = 1
@@ -266,8 +266,9 @@ def check_pred(cds_open, cds_close, cds_direction,
         pred_before_start_of_cds = pred_cds_end > cds_close
         pred_after_end_of_cds = pred_cds_start < cds_open
 
-        pred_start_codon = _rev_comp(read_seq)[pred_start-1:pred_start-1+3] 
-        pred_end_codon   = _rev_comp(read_seq)[pred_end-3:pred_end] 
+        # read is '-' so in samfile and tsv file the sequence will be reverse complemented
+        pred_start_codon = read_seq[pred_start-1:pred_start-1+3] 
+        pred_end_codon   = read_seq[pred_end-3:pred_end] 
 
         #print(read_start, read_end, pred_start, pred_end, start_diff, stop_diff, read_captures_cds_start, read_captures_cds_end, pred_before_start_of_cds, pred_after_end_of_cds, pred_start_codon, pred_end_codon)
         #print(read_seq)
@@ -289,100 +290,12 @@ def check_pred(cds_open, cds_close, cds_direction,
 
 #--------------------------------------------------------------------        
 
-# Examples of how to use this check_pred function
+# TBD: Examples of how to use this check_pred function
 # All examples have 1-based positions
 
 def main():
 
-    ########################################### cat 1 +++
-
-    # cat 1 middle. Correct frame, unhelpful alt codons, so it's just a good middle.
-    answer_vals = check_pred(3802, 4572, '+', 3810, 3959, '+', 2, 148, '+', "TATTAAAATGGTTGCTGATGAATTGAATGTAACTAAACAAACTATTGTTAATAATGCTAAAAACTTAAATATATCTTTTAAAAAAGAAAATGGAATTAATTATATTAATGATAATGATTGTTTAAAAATTATAGAAAAGATCACTAAGAA")
-    print(answer_vals) # {(3, None), (14, None), (2, None)}
-    for (a,codon) in answer_vals:
-        print(inverse_answers[a])
-    print()
-
-     
-    ########################################### cat 3 +--
-     
-    # cat 3 middle.  Correct frame but the prediction stops short of the end of the reversed read, and is incorrect start codon (ATT)
-    answer_vals = check_pred(3802, 4572, '+', 3808, 3957, '-', 1, 147, '-', "CTTAGTGATCTTTTCTATAATTTTTAAACAATCATTATCATTAATATAATTAATTCCATTTTCTTTTTTAAAAGATATATTTAAGTTTTTAGCATTATTAACAATAGTTTGTTTAGTTACATTCAATTCATCAGCAACCATTTTAATAGT")
-    print(answer_vals) # {(3, None), (5, 'ATT'), (14, None), (2, None)}
-    for (a,codon) in answer_vals:
-        print(inverse_answers[a])
-    print()
-
-    # cat 3 middle. Correct frame, unhelpful alt codons (GTT, AGG), so it's just a good middle.
-    answer_vals = check_pred(3802, 4572, '+', 3819, 3968, '-', 3, 149, '-', "GTCCTTTCTTTCTTAGTGATCTTTTCTATAATTTTTAAACAATCATTATCATTAATATAATTAATTCCATTTTCTTTTTTAAAAGATATATTTAAGTTTTTAGCATTATTAACAATAGTTTGTTTAGTTACATTCAATTCATCAGCAACC")
-    print(answer_vals) # {(3, None), (14, None), (2, None)}
-    for (a,codon) in answer_vals:
-        print(inverse_answers[a])
-    print()
-
-
-    ########################################### cat 6 -+-
-     
-    # cat 6 middle. Correct frame, but start would be AAA and stop would be ATT, so it's just a good middle
-    answer_vals = check_pred(400, 582, '-', 404, 553, '+', 3, 149, '-', "AAAATACGGAACAAATAAACCAATATTATCGGCGCACAACTTGCTATCGTAACAATTGCAACCGTACCAACTAATTTAGACAATCCTTTTTCATTCAATTCTTTTTTAGCTCTCTTTTCTCCTTCACAATCATCATAAATAGCCACTTTA")
-    print(answer_vals) # {(3, None), (14, None), (2, None)} # AAA, ATT
-    for (a,codon) in answer_vals:
-        print(inverse_answers[a])
-    print()
-
-    # cat 6 right. Correct frame, correct start
-    answer_vals = check_pred(400, 582, '-', 436, 585, '+', 1, 147, '-', "CGCACAACTTGCTATCGTAACAATTGCAACCGTACCAACTAATTTAGACAATCCTTTTTCATTCAATTCTTTTTTAGCTCTCTTTTCTCCTTCACAATCATCATAAATAGCCACTTTAATTCCAAGATAAATTGGTATTAAACCCAATAA")
-    print(answer_vals) # {(0, 'TTG'), (3, None), (2, None)}
-    for (a,codon) in answer_vals:
-        print(inverse_answers[a])
-    print()
-
-    # cat 6, right. Correct frame, incorrect start
-    answer_vals = check_pred(400, 582, '-', 444, 593, '+', 2, 148, '-', "TTGCTATCGTAACAATTGCAACCGTACCAACTAATTTAGACAATCCTTTTTCATTCAATTCTTTTTTAGCTCTCTTTTCTCCTTCACAATCATCATAAATAGCCACTTTAATTCCAAGATAAATTGGTATTAAACCCAATAAACCTAATA")
-    print(answer_vals) # {(3, None), (5, 'TTA'), (2, None)}
-    for (a,codon) in answer_vals:
-        print(inverse_answers[a])
-    print()
-
-    # cat 6, right. Prediction ends before cds starts. Incorrect frame.
-    answer_vals = check_pred(400, 582, '-', 550, 699, '+', 78, 149, '-', "TTTAATTCCAAGATAAATTGGTATTAAACCCAATAAACCTAATATCCACTTTTCTGGAACATAATTTAATACAAAAGCTAAAACAAACTAACTAATATTAAAATAATAGACCCTAAATATTGACCAACATAAATATCTCTATATTCTTTT")
-    print(answer_vals) # {(8, None), (3, None), (6, None), (5, None)}
-    for (a,codon) in answer_vals:
-        print(inverse_answers[a])
-    print()
-
-    ########################################### cat 8 --+
-    
-    # cat 8, middle. Correct frame but the prediction stops short of the end of the read, and is incorrect stop codon (ATA)
-    answer_vals = check_pred(400, 582, '-', 427, 576, '-', 1, 147, '+', "TTAATACCAATTTATCTTGGAATTAAAGTGGCTATTTATGATGATTGTGAAGGAGAAAAGAGAGCTAAAAAAGAATTGAATGAAAAAGGATTGTCTAAATTAGTTGGTACGGTTGCAATTGTTACGATAGCAAGTTGTGCGCCGATAATA")
-    print(answer_vals) # {(4, 'ATA'), (3, None), (14, None), (2, None)}
-    for (a,codon) in answer_vals:
-        print(inverse_answers[a])
-    print()
-
-
-    # cat 8, middle. Correct frame. The start and stop would be incorrect for alternatives, but it's a good middle
-    answer_vals = check_pred(400, 582, '-', 428, 577, '-', 2, 148, '+', "TTTAATACCAATTTATCTTGGAATTAAAGTGGCTATTTATGATGATTGTGAAGGAGAAAAGAGAGCTAAAAAAGAATTGAATGAAAAAGGATTGTCTAAATTAGTTGGTACGGTTGCAATTGTTACGATAGCAAGTTGTGCGCCGATAAT")
-    print(answer_vals) # {(3, None), (14, None), (2, None)}
-    for (a,codon) in answer_vals:
-        print(inverse_answers[a])
-    print()
-
-
-    # cat 8, right. Correct frame. Incorrect start.
-    answer_vals = check_pred(400, 582, '-', 443, 592, '-', 2, 148, '+', "ATTAGGTTTATTGGGTTTAATACCAATTTATCTTGGAATTAAAGTGGCTATTTATGATGATTGTGAAGGAGAAAAGAGAGCTAAAAAAGAATTGAATGAAAAAGGATTGTCTAAATTAGTTGGTACGGTTGCAATTGTTACGATAGCAAG")
-    print(answer_vals) # {(3, None), (5, 'TTA'), (2, None)}
-    for (a,codon) in answer_vals:
-        print(inverse_answers[a])
-    print()
-
-    # cat 8, right. Prediction ends before cds starts. Also incorrect frame.
-    answer_vals = check_pred(400, 582, '-', 548, 697, '-', 3, 71, '+', "AAGAATATAGAGATATTTATGTTGGTCAATATTTAGGGTCTATTATTTTAATATTAGTTAGTTTGTTTTAGCTTTTGTATTAAATTATGTTCCAGAAAAGTGGATATTAGGTTTATTGGGTTTAATACCAATTTATCTTGGAATTAAAGT")
-    print(answer_vals) # {(8, None), (3, None), (6, None), (5, None)}
-    for (a,codon) in answer_vals:
-        print(inverse_answers[a])
-    print()
-
+     pass
     
 
 if __name__ == "__main__": 
@@ -391,22 +304,3 @@ if __name__ == "__main__":
 
 
 
-###################################################################
-#This one is weird
-
-"""
-
-# cat 3 middle. 
-    answer_vals = check_pred(3802, 4572, '+', 3856, 4005, '-', 1, 147, '-', "ATAATGCTAAAAACTTAAATATATCTTTTAAAAAAGAAAATGGAATTAATTATATTAATGATAATGATTGTTTAAAAATTATAGAAAAGATCACTAAGAAAGAAAGGACAATGCAAAATAAAGAATCAATAAAAAAAGAAAGATTTAATG")
-    print(answer_vals) 
-    for (a,codon) in answer_vals:
-        print(inverse_answers[a])
-    print()
-
-# Read starts at 3856. This sequence is in bamfile.
-#ATAATGCTAAAAACTTAAATATATCTTTTAAAAAAGAAAATGGAATTAATTATATTAATGATAATGATTGTTTAAAAATTATAGAAAAGATCACTAAGAAAGAAAGGACAATGCAAAATAAAGAATCAATAAAAAAAGAAAGATTTAATG
-
-# Gene starts at 3802. if we take it from 3856 it is off by 5 with read. 
-#GTTAATAATGCTAAAAACTTAAATATATCTTTTAAAAAAGAAAATGGAATTAATTATATTAATGATAATGATTGTTTAAAAATTATAGAAAAGATCACTAAGAAAGAAAGGACAATGCAAAATAAAGAATCAATAAAAAAAGAAAGATTT
-
-"""

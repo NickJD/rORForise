@@ -10,8 +10,11 @@ dir = "Genome_Processing"
 
 genomes = ["Mycoplasma_genitalium_G37"] 
 #genomes = ["Staphylococcus_aureus_502A"]
+#genomes = ["Escherichia_coli_k_12"]
+
 GC_prob = 0.3169 # Myco
 #GC_prob = 0.3292 # Staph
+#GC_prob = 0.5080 # Ecoli
 
 fragmentation_types = ["ART_errFree"]
 subgroups = ['Combined']
@@ -21,8 +24,14 @@ methods = ["FragGeneScan"] #,"Pyrodigal","Naive-StORF-V1"]#,"Naive-StORF-V2","Na
 #methods = ["Pyrodigal"]
 #methods = ["Naive-StORF-V1"]
 
+nucleotides = ['A','C','G','T']
 
+def make_kmers(k):
+    if k == 1:
+        return nucleotides
+    return [n+c for n in nucleotides for c in make_kmers(k-1)]
 
+codons = make_kmers(3)
 
 # What is the expected number of occurrences of this codon given the GC probability
 # in the genome and the total number of codons?
@@ -32,18 +41,16 @@ def expect(codon, total):
 
 def print_with_expect(answer_type, codon_counts):
     print(answer_type+":")
-    print(" codon\tcount\texpected")
     chosen = codon_counts[cp.answers[answer_type]]
     total = sum(chosen.values())
-    for (codon,count) in sorted(chosen.items()):
-        print(f' {codon}\t{count:4d}\t{expect(codon, total):4.0f}')
+    for codon in codons: 
+        print(f'{codon}\t{chosen[codon]:4d}\t{expect(codon, total):4.0f}')
 
 def print_without_expect(answer_type, codon_counts):
     print(answer_type+":")
-    print(" codon\tcount")
     chosen = codon_counts[cp.answers[answer_type]]
-    for (codon,count) in sorted(chosen.items()):
-        print(f' {codon}\t{count:4d}')
+    for codon in codons: 
+        print(f'{codon}\t{chosen[codon]:4d}')
 
 
         
@@ -90,18 +97,19 @@ def evaluate(genome_name, preds, intersect_filename, method):
                                 if answer not in codon_counts:
                                     codon_counts[answer] = collections.defaultdict(int)
                                 codon_counts[answer][codon] += 1
+
                 else:
                     reads_without_predictions.add(read_name)
 
-    print("Number of CDS-aligned reads:", len(seen_read_names))
-    print("Number of CDS-aligned reads without predictions:", len(reads_without_predictions))
-    print("Number of CDS-aligned reads with at least one pred:", number_of_CDS_mappings_with_predictions)
-    print("Number of predictions:", len([value for value in preds.values()]))
-    print("Number of on-target preds:", number_of_on_target_preds)
+    print("Number of CDS-aligned reads", len(seen_read_names), sep = "\t")
+    print("Number of CDS-aligned reads without predictions", len(reads_without_predictions), sep = "\t")
+    print("Number of CDS-aligned reads with at least one pred", number_of_CDS_mappings_with_predictions, sep = "\t")
+    print("Number of predictions", len([value for value in preds.values()]), sep = "\t")
+    print("Number of on-target preds", number_of_on_target_preds, sep = "\t")
     
     # Print the counted answers
     for (answer,count) in sorted(answer_counts.items()):
-        print(f'{cp.inverse_answers[answer]}: {count}')
+        print(f'{cp.inverse_answers[answer]}\t{count}')
 
     print_without_expect("correct stop", codon_counts)
     print_without_expect("alternative stop", codon_counts)
@@ -120,6 +128,7 @@ def read_preds(genome_name, method, fragmentation_type, group):
     directory_path = os.path.join(dir, genome_name, method)
     file_pattern = f"*_{fragmentation_type}_{group}.gff.gz"
     gff_name = glob.glob(os.path.join(directory_path, file_pattern))
+    print(directory_path, file_pattern, gff_name)
     print(gff_name[0])
     with gzip.open(gff_name[0], 'rt', encoding='utf-8')  as f:
         csvr = csv.reader(f, delimiter="\t")
@@ -154,7 +163,7 @@ def main():
 
                 for group in subgroups:
                     (total_preds, preds) = read_preds(genome_name, method, fragmentation_type, group)
-                    print("Number of predictions made for reads:", total_preds)
+                    print("Number of predictions made for reads", total_preds, sep = "\t")
                     evaluate(genome_name, preds, intersect_bed_filename, method)
 
 

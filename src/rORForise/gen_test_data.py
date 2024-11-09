@@ -1,5 +1,5 @@
 import random
-import check_pred as cp
+from rORForise.src.rORForise import check_pred as cp
 import unittest
 
 CDS_start = 1000

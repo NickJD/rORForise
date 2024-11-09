@@ -1,0 +1,2 @@
+[console_scripts]
+eval = rORForise.evaluate:main

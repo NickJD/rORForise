@@ -1,0 +1,17 @@
+Metadata-Version: 2.1
+Name: rORForise
+Version: 1.0.0
+Summary: rORForise - A a tool to study read-level gene predictions.
+Home-page: https://github.com/NickJD/rORForise
+Author: Nicholas Dimonaco
+Author-email: nicholas@dimonaco.co.uk
+Project-URL: Bug Tracker, https://github.com/NickJD/rORForise/issues
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: GNU General Public License v3 (GPLv3)
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown
+License-File: LICENSE
+
+# rORForise
+Read-based gene coverage evaluation

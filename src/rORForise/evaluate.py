@@ -6,7 +6,7 @@ import os, glob
 import gzip
 import math
 
-dir = "Genome_Processing"
+dir = "../../Genome_Processing"
 
 genomes = ["Mycoplasma_genitalium_G37"] 
 #genomes = ["Staphylococcus_aureus_502A"]

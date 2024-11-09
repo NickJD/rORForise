@@ -1,0 +1,9 @@
+LICENSE
+README.md
+pyproject.toml
+setup.cfg
+src/rORForise.egg-info/PKG-INFO
+src/rORForise.egg-info/SOURCES.txt
+src/rORForise.egg-info/dependency_links.txt
+src/rORForise.egg-info/entry_points.txt
+src/rORForise.egg-info/top_level.txt

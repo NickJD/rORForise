@@ -1,2 +1,3 @@
 [console_scripts]
-eval = rORForise.evaluate:main
+bam-gff-intersect = rORForise.bam_gff_intersect:main
+rORForise = rORForise.rORForise:main

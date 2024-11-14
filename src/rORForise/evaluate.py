@@ -6,23 +6,7 @@ import os, glob
 import gzip
 import math
 
-dir = "../../Genome_Processing"
 
-genomes = ["Mycoplasma_genitalium_G37"] 
-#genomes = ["Staphylococcus_aureus_502A"]
-#genomes = ["Escherichia_coli_k_12"]
-
-GC_prob = 0.3169 # Myco
-#GC_prob = 0.3292 # Staph
-#GC_prob = 0.5080 # Ecoli
-
-fragmentation_types = ["ART_errFree"]
-subgroups = ['Combined']
-#subgroups = ['Combined_FGS_sanger_5']
-
-methods = ["FragGeneScan"] #,"Pyrodigal","Naive-StORF-V1"]#,"Naive-StORF-V2","Naive-StORF-V3"] 
-#methods = ["Pyrodigal"]
-#methods = ["Naive-StORF-V1"]
 
 nucleotides = ['A','C','G','T']
 
@@ -35,16 +19,16 @@ codons = make_kmers(3)
 
 # What is the expected number of occurrences of this codon given the GC probability
 # in the genome and the total number of codons?
-def expect(codon, total):
+def expect(codon, total, GC_prob):
     prob = math.prod([GC_prob/2 if (c == 'G' or c=='C') else (1-GC_prob)/2 for c in codon])
     return prob*total
 
-def print_with_expect(answer_type, codon_counts):
+def print_with_expect(answer_type, codon_counts, GC_prob):
     print(answer_type+":")
     chosen = codon_counts[cp.answers[answer_type]]
     total = sum(chosen.values())
     for codon in codons: 
-        print(f'{codon}\t{chosen[codon]:4d}\t{expect(codon, total):4.0f}')
+        print(f'{codon}\t{chosen[codon]:4d}\t{expect(codon, total, GC_prob):4.0f}')
 
 def print_without_expect(answer_type, codon_counts):
     print(answer_type+":")
@@ -54,7 +38,7 @@ def print_without_expect(answer_type, codon_counts):
 
 
         
-def evaluate(genome_name, preds, intersect_filename, method):
+def evaluate(genome_name, GC_prob, preds, intersect_filename, method):
 
     number_of_CDS_mappings_with_predictions = 0
     number_of_on_target_preds = 0
@@ -113,19 +97,19 @@ def evaluate(genome_name, preds, intersect_filename, method):
 
     print_without_expect("correct stop", codon_counts)
     print_without_expect("alternative stop", codon_counts)
-    print_with_expect("incorrect stop", codon_counts)
+    print_with_expect("incorrect stop", codon_counts, GC_prob)
     print_without_expect("correct start", codon_counts)
     print_without_expect("alternative start", codon_counts)
-    print_with_expect("incorrect start", codon_counts)
+    print_with_expect("incorrect start", codon_counts, GC_prob)
 
 
 
 
 # This returns a dictionary of lists. Key is read name. List contains all preds that made for this read. Each pred has (start, stop, dir).
-def read_preds(genome_name, method, fragmentation_type, group):
+def read_preds(directory, genome_name, method, fragmentation_type, group):
     total_preds = 0
     preds = collections.defaultdict(list)
-    directory_path = os.path.join(dir, genome_name, method)
+    directory_path = os.path.join(directory, genome_name, method)
     file_pattern = f"*_{fragmentation_type}_{group}.gff.gz"
     gff_name = glob.glob(os.path.join(directory_path, file_pattern))
     print(directory_path, file_pattern, gff_name)
@@ -149,25 +133,3 @@ def read_preds(genome_name, method, fragmentation_type, group):
     return (total_preds, preds)
                 
     
-def main():
-    for genome_name in genomes:
-        print(genome_name)
-        datadir = dir + "/" + genome_name + "/Processing"
-        intersect_bed_filename = datadir + "/"+genome_name+"_Reads_Intersect_CDS.tsv.gz"
-
-        for method in methods:
-            print(method)
-
-            for fragmentation_type in fragmentation_types:
-                print(fragmentation_type)
-
-                for group in subgroups:
-                    (total_preds, preds) = read_preds(genome_name, method, fragmentation_type, group)
-                    print("Number of predictions made for reads", total_preds, sep = "\t")
-                    evaluate(genome_name, preds, intersect_bed_filename, method)
-
-
-
-                    
-main()
-# use as follows: python evaluate.py

@@ -18,11 +18,11 @@
 start_codons = ["ATG", "GTG", "TTG"]
 stop_codons  = ["TAA", "TAG", "TGA"]
 
-def is_ok_start_codon(codon):
+def _is_ok_start_codon(codon):
      # return True
      return (codon in start_codons)
 
-def is_ok_stop_codon(codon):
+def _is_ok_stop_codon(codon):
      # return True
      return (codon in stop_codons)
 
@@ -49,6 +49,9 @@ answers = {
     "alternative stop": 12,
     "middle or alternative stop": 13,
     "middle": 14,
+    "middle incorrect start": 15,
+    "middle incorrect stop": 16,
+    "not enough read-CDS overlap": 17, 
 }
 
      
@@ -91,7 +94,7 @@ def _collect_answers(read_start, read_end, pred_start, pred_end, start_diff, sto
             _add_answer("correct frame", None, answer_vals)
         elif start_diff % 3 == 0:
             _add_answer("correct frame", None, answer_vals)
-            if is_ok_start_codon(pred_start_codon):
+            if _is_ok_start_codon(pred_start_codon):
                _add_answer("alternative start", pred_start_codon, answer_vals)
             else:
                _add_answer("incorrect start", pred_start_codon, answer_vals)
@@ -107,7 +110,7 @@ def _collect_answers(read_start, read_end, pred_start, pred_end, start_diff, sto
             _add_answer("correct frame", None, answer_vals)
         elif stop_diff % 3 == 0:
             _add_answer("correct frame", None, answer_vals)
-            if is_ok_stop_codon(pred_end_codon):
+            if _is_ok_stop_codon(pred_end_codon):
                _add_answer("alternative stop", pred_end_codon, answer_vals)
             else:
                _add_answer("incorrect stop", pred_end_codon, answer_vals)
@@ -123,13 +126,13 @@ def _collect_answers(read_start, read_end, pred_start, pred_end, start_diff, sto
             _add_answer("correct frame", None, answer_vals)
             if abs(pred_start - read_start) >= 3:
                 # doesn't fill the read
-                if is_ok_start_codon(pred_start_codon):
+                if _is_ok_start_codon(pred_start_codon):
                    _add_answer("alternative start", pred_start_codon, answer_vals)
                 else:
-                   _add_answer("incorrect start", pred_start_codon, answer_vals)
+                   _add_answer("middle incorrect start", pred_start_codon, answer_vals)
             else:
                 # fills as much of the read as it can
-                if is_ok_start_codon(pred_start_codon):
+                if _is_ok_start_codon(pred_start_codon):
                    _add_answer("middle or alternative start", pred_start_codon, answer_vals)
                 else:
                    _add_answer("middle", None, answer_vals)
@@ -138,13 +141,13 @@ def _collect_answers(read_start, read_end, pred_start, pred_end, start_diff, sto
             _add_answer("correct frame", None, answer_vals)
             if abs(pred_end - read_end) >= 3: 
                 # doesn't fill the read
-                if is_ok_stop_codon(pred_end_codon):
+                if _is_ok_stop_codon(pred_end_codon):
                    _add_answer("alternative stop", pred_end_codon, answer_vals)
                 else:
-                   _add_answer("incorrect stop", pred_end_codon, answer_vals) # should really remove any existing "middle" answer
+                   _add_answer("middle incorrect stop", pred_end_codon, answer_vals) # should really remove any existing "middle" answer
             else:
                 # fills as much of the read as it can
-                if is_ok_stop_codon(pred_end_codon):
+                if _is_ok_stop_codon(pred_end_codon):
                    _add_answer("middle or alternative stop", pred_end_codon, answer_vals)
                 else:
                    _add_answer("middle", None, answer_vals)
@@ -190,11 +193,14 @@ def check_pred(cds_open, cds_close, cds_direction,
         pred_start_codon = read_seq[pred_start-1:pred_start-1+3]
         pred_end_codon   = read_seq[pred_end-3:pred_end]
 
-        #print(read_start, read_end, pred_start, pred_end, start_diff, stop_diff, read_captures_cds_start, read_captures_cds_end, pred_before_start_of_cds, pred_after_end_of_cds, pred_start_codon, pred_end_codon)
-        #print(read_seq)
-        
         answer_vals = _collect_answers(read_start, read_end, pred_start, pred_end, start_diff, stop_diff, read_captures_cds_start, read_captures_cds_end, pred_before_start_of_cds, pred_after_end_of_cds, pred_start_codon, pred_end_codon)
 
+        #print(read_start, read_end, pred_start, pred_end, start_diff, stop_diff, read_captures_cds_start, read_captures_cds_end, pred_before_start_of_cds, pred_after_end_of_cds, pred_start_codon, pred_end_codon)
+        #print("CDS",cds_open,cds_close)
+        #print("read",read_open,read_close)
+        #print(read_seq)
+        #print(answer_vals)
+        #print()
 
     elif category == ('+','-','-'):
         #print("category 3")
@@ -217,11 +223,14 @@ def check_pred(cds_open, cds_close, cds_direction,
         pred_start_codon = _rev_comp(read_seq)[read_end-pred_end:read_end-pred_end+3] 
         pred_end_codon   = _rev_comp(read_seq)[read_end-pred_start-3+1:read_end-pred_start+1]
 
-        #print(read_open, read_close, pred_cds_start, pred_cds_end, start_diff, stop_diff, read_captures_cds_start, read_captures_cds_end, pred_before_start_of_cds, pred_after_end_of_cds, pred_start_codon, pred_end_codon)
-        #print(read_seq)
-        
         answer_vals = _collect_answers(read_open, read_close, pred_cds_start, pred_cds_end, start_diff, stop_diff, read_captures_cds_start, read_captures_cds_end, pred_before_start_of_cds, pred_after_end_of_cds, pred_start_codon, pred_end_codon)
 
+        #print(read_open, read_close, pred_cds_start, pred_cds_end, start_diff, stop_diff, read_captures_cds_start, read_captures_cds_end, pred_before_start_of_cds, pred_after_end_of_cds, pred_start_codon, pred_end_codon)
+        #print(read_seq)
+        #print("CDS",cds_open,cds_close)
+        #print("read",read_open,read_close)
+        #print(answer_vals)
+        #print()
         
     elif category == ('-','+','-'):
         #print("category 6 -+-")
@@ -247,7 +256,8 @@ def check_pred(cds_open, cds_close, cds_direction,
         #print(read_seq)
 
         answer_vals = _collect_answers(read_start, read_end, pred_start, pred_end, start_diff, stop_diff, read_captures_cds_start, read_captures_cds_end, pred_before_start_of_cds, pred_after_end_of_cds, pred_start_codon, pred_end_codon)
-
+        #print(answer_vals)
+        #print()
 
     elif category == ('-','-','+'):
         #print("category 8")

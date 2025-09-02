@@ -38,7 +38,7 @@ def print_without_expect(answer_type, codon_counts):
 
 
         
-def evaluate(genome_name, GC_prob, preds, intersect_filename, method):
+def evaluate(intersect_bed_filename, preds, gc_prob):
 
     number_of_CDS_mappings_with_predictions = 0
     number_of_on_target_preds = 0
@@ -50,7 +50,7 @@ def evaluate(genome_name, GC_prob, preds, intersect_filename, method):
     answer_counts = collections.defaultdict(int)
     codon_counts = {}
 
-    with gzip.open(intersect_filename, 'rt') as f:
+    with gzip.open(intersect_bed_filename, 'rt') as f:
         csvr = csv.reader(f, delimiter="\t") 
         header = next(csvr) # ignore single header line
 
@@ -110,27 +110,23 @@ def evaluate(genome_name, GC_prob, preds, intersect_filename, method):
 
     print_without_expect("correct stop", codon_counts)
     print_without_expect("alternative stop", codon_counts)
-    print_with_expect("incorrect stop", codon_counts, GC_prob)
+    print_with_expect("incorrect stop", codon_counts, gc_prob)
     print_without_expect("correct start", codon_counts)
     print_without_expect("alternative start", codon_counts)
-    print_with_expect("incorrect start", codon_counts, GC_prob)
+    print_with_expect("incorrect start", codon_counts, gc_prob)
 
 
 
 
 # This returns a dictionary of lists. Key is read name. List contains all preds that made for this read. Each pred has (start, stop, dir).
-def read_preds(directory, genome_name, method, fragmentation_type, group):
+def read_preds(predictions_gff):
     total_preds = 0
     preds = collections.defaultdict(list)
     pred_length_distn = collections.defaultdict(int) # length->frequency
 
-    directory_path = os.path.join(directory, genome_name, method)
-    file_pattern = f"*_{fragmentation_type}_{group}.gff.gz"
-    gff_name = glob.glob(os.path.join(directory_path, file_pattern))
-    print(directory_path, file_pattern, gff_name)
-    print(gff_name[0])
+    print(predictions_gff)
     
-    with gzip.open(gff_name[0], 'rt', encoding='utf-8')  as f:
+    with gzip.open(predictions_gff, 'rt', encoding='utf-8')  as f:
         csvr = csv.reader(f, delimiter="\t")
         for row in csvr:
             if row[0].startswith("#"): # ignore the rows that are comments

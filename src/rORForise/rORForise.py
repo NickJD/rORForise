@@ -1,50 +1,41 @@
 import argparse
-import evaluate
+#import evaluate
 
+try: # Try to import from the package if available
+    from .constants import *
+    #from .evaluate import evaluate as evaluate
+    from .evaluate import *
+except (ModuleNotFoundError, ImportError, NameError, TypeError) as error:
+    from constants import *
+    #from evaluate import evaluate as evaluate
+    import evaluate
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Process genome evaluation parameters.")
+    parser = argparse.ArgumentParser(description="rORForise version: " + rORForise_VERSION + " - Process genome evaluation parameters.")
 
-    parser.add_argument('-d', '--directory', type=str, required=True,
-                        help="Path to the main directory containing genome processing subdirectories.")
+    parser.add_argument('-int_bed', '--intersect_bed', type=str, nargs='+', required=True,
+                        help="File path to intersect bedfile with read to CDS mappings.")
 
-    parser.add_argument('-g', '--genomes', type=str, nargs='+', required=True,
-                        help="List of genome names to process. Example: 'Mycoplasma_genitalium_G37 Staphylococcus_aureus_502A'")
+    parser.add_argument('-p_gff', '--predictions_gff', type=str, required=True,
+                        help="Path to the predictions in GFF format.")
 
-    parser.add_argument('--gc_prob', type=float, required=True,
+    parser.add_argument('-gc_prob', type=float, required=True,
                         help="GC probability of the genome being processed (e.g., 0.3169 for Mycoplasma genitalium).")
 
-    parser.add_argument('-f', '--fragmentation_types', type=str, nargs='+', required=True,
-                        help="List of fragmentation types to use (e.g., 'ART_errFree').")
-
-    parser.add_argument('-s', '--subgroups', type=str, nargs='+', required=True,
-                        help="List of subgroups for evaluation (e.g., 'Combined').")
-
-    parser.add_argument('-m', '--methods', type=str, nargs='+', required=True,
-                        help="List of methods for evaluation (e.g., 'FragGeneScan').")
 
     return parser.parse_args()
 
 
 def main():
-    args = parse_args()
+    options = parse_args()
 
-    for genome_name in args.genomes:
-        print(genome_name)
-        datadir = f"{args.directory}/{genome_name}/Processing"
-        intersect_bed_filename = f"{datadir}/{genome_name}_Reads_Intersect_CDS.tsv.gz"
+    total_preds, preds = evaluate.read_preds(options.predictions_gff)
+    print("Number of predictions made for reads", total_preds, sep="\t")
+    #evaluate.evaluate(genome_name, args.gc_prob, preds, intersect_bed_filename, method)
 
-        for method in args.methods:
-            print(method)
+    intersect_bed_filename = options.intersect_bed[0]
 
-            for fragmentation_type in args.fragmentation_types:
-                print(fragmentation_type)
-
-                for group in args.subgroups:
-                    total_preds, preds = evaluate.read_preds(args.directory, genome_name, method, fragmentation_type,
-                                                             group)
-                    print("Number of predictions made for reads", total_preds, sep="\t")
-                    evaluate.evaluate(genome_name, args.gc_prob, preds, intersect_bed_filename, method)
+    evaluate.evaluate(intersect_bed_filename, preds, options.gc_prob)
 
 
 if __name__ == "__main__":

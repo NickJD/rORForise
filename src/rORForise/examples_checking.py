@@ -1,5 +1,5 @@
-from rORForise.src.rORForise.check_pred import check_pred
-from rORForise.src.rORForise.check_pred import inverse_answers
+from rORForise_Testing.src.rORForise.check_pred import check_pred
+from rORForise_Testing.src.rORForise.check_pred import inverse_answers
 
 ##################################### CAT 1
 

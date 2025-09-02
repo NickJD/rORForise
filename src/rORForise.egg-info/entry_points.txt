@@ -1,3 +1,0 @@
-[console_scripts]
-bam-gff-intersect = rORForise.bam_gff_intersect:main
-rORForise = rORForise.rORForise:main

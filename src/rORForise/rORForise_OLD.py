@@ -38,4 +38,4 @@ def main():
 
                     
 main()
-# use as follows: python rORForise.py
+# use as follows: python rORForise_Testing.py

@@ -1,6 +1,12 @@
 import pysam
 import argparse
-from utils import *
+
+try: # Try to import from the package if available
+    from .constants import *
+    from utils import *
+except (ModuleNotFoundError, ImportError, NameError, TypeError) as error:
+    from constants import *
+    from utils import *
 
 def parse_gff(gff_file):
     """Parse GFF file and return a list of tuples."""

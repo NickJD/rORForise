@@ -47,8 +47,6 @@ def process_bam_and_gff(bam_file, gff_file, features, output_file):
         # Process each read in BAM file
         for read in bam.fetch():
             read_id = read.query_name
-            if '502A-748/2' in read_id:
-                print("s")
             if read.is_paired:
                 if read.is_read1:
                     read_id = f"{read_id}/1"
@@ -89,7 +87,7 @@ def main():
     parser = argparse.ArgumentParser(description='Process BAM and GFF files to output information in a tab-separated file.')
     parser.add_argument('-b', '--bam', required=True, help='Path to the BAM file.')
     parser.add_argument('-g', '--gff', required=True, help='Path to the GFF file.')
-    parser.add_argument('-f', '--features', required=False, help='Features to use (CDS).', default=None)
+    parser.add_argument('-f', '--features', required=False, help='Features to use (CDS).', default='CDS')
     parser.add_argument('-o', '--output', required=True, help='Path to the output file.')
 
     args = parser.parse_args()

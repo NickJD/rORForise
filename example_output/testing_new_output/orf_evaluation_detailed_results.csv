@@ -1,0 +1,19 @@
+answer_type,count,percentage
+correct start,1211,0.59
+correct stop,2030,0.98
+correct frame,56844,27.53
+correct direction,58014,28.10
+incorrect stop,1013,0.49
+incorrect start,1287,0.62
+incorrect frame,1170,0.57
+incorrect direction,3935,1.91
+prediction ends before cds starts,105,0.05
+prediction starts after cds ends,155,0.08
+alternative start,1818,0.88
+middle or alternative start,1913,0.93
+alternative stop,5201,2.52
+middle or alternative stop,1166,0.56
+middle,49700,24.07
+middle incorrect start,5848,2.83
+middle incorrect stop,11356,5.50
+not enough read-CDS overlap,3700,1.79

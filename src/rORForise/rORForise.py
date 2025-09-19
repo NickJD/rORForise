@@ -1,5 +1,6 @@
 import argparse
-#import evaluate
+import shutil
+import os
 
 try: # Try to import from the package if available
     from .constants import *
@@ -19,6 +20,9 @@ def parse_args():
     parser.add_argument('-p_gff', '--predictions_gff', type=str, required=True,
                         help="Path to the predictions in GFF format.")
 
+    parser.add_argument('-o', '--output_dir', type=str, required=True,
+                        help="Directory to store output files.")
+
     parser.add_argument('-gc_prob', type=float, required=True,
                         help="GC probability of the genome being processed (e.g., 0.3169 for Mycoplasma genitalium).")
 
@@ -29,13 +33,17 @@ def parse_args():
 def main():
     options = parse_args()
 
-    total_preds, preds = evaluate.read_preds(options.predictions_gff)
+    # Ensure output directory exists and is empty
+    if os.path.exists(options.output_dir):
+        shutil.rmtree(options.output_dir)
+    os.makedirs(options.output_dir)
+
+    total_preds, preds = evaluate.read_preds(options.predictions_gff, options.output_dir)
     print("Number of predictions made for reads", total_preds, sep="\t")
-    #evaluate.evaluate(genome_name, args.gc_prob, preds, intersect_bed_filename, method)
 
     intersect_bed_filename = options.intersect_bed[0]
 
-    evaluate.evaluate(intersect_bed_filename, preds, options.gc_prob)
+    evaluate.evaluate(intersect_bed_filename, preds, options.gc_prob, options.output_dir)
 
 
 if __name__ == "__main__":

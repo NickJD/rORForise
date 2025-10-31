@@ -332,7 +332,10 @@ def evaluate(intersect_bed_filename, preds, gc_prob, output_dir, output_prefix="
         'middle_only': 0
     }
 
-    with gzip.open(intersect_bed_filename, 'rt') as f:
+    #with gzip.open(intersect_bed_filename, 'rt') as f:
+    with (gzip.open(intersect_bed_filename, 'rt', encoding='utf-8') if intersect_bed_filename.endswith('.gz') else open(intersect_bed_filename,
+                                                                                                        'r', encoding='utf-8')) as f:
+
         csvr = csv.reader(f, delimiter="\t")
         header = next(csvr)  # ignore single header line
         read_num = 0
@@ -454,7 +457,8 @@ def read_preds(predictions_gff, output_dir, output_prefix="orf_evaluation"):
 
     print("Predictions GFF: " + predictions_gff)
 
-    with gzip.open(predictions_gff, 'rt', encoding='utf-8') as f:
+    with (gzip.open(predictions_gff, 'rt', encoding='utf-8') if predictions_gff.endswith('.gz') else open(predictions_gff,
+                                                                                                    'r', encoding='utf-8')) as f:
         csvr = csv.reader(f, delimiter="\t")
         for row in csvr:
             if row[0].startswith("#"):  # ignore the rows that are comments

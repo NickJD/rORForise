@@ -1,0 +1,641 @@
+answer_type,codon,observed,expected,obs_exp_ratio
+correct stop,AAA,0,N/A,N/A
+correct stop,AAC,0,N/A,N/A
+correct stop,AAG,0,N/A,N/A
+correct stop,AAT,0,N/A,N/A
+correct stop,ACA,0,N/A,N/A
+correct stop,ACC,0,N/A,N/A
+correct stop,ACG,0,N/A,N/A
+correct stop,ACT,0,N/A,N/A
+correct stop,AGA,0,N/A,N/A
+correct stop,AGC,0,N/A,N/A
+correct stop,AGG,0,N/A,N/A
+correct stop,AGT,0,N/A,N/A
+correct stop,ATA,0,N/A,N/A
+correct stop,ATC,0,N/A,N/A
+correct stop,ATG,0,N/A,N/A
+correct stop,ATT,0,N/A,N/A
+correct stop,CAA,0,N/A,N/A
+correct stop,CAC,0,N/A,N/A
+correct stop,CAG,0,N/A,N/A
+correct stop,CAT,0,N/A,N/A
+correct stop,CCA,0,N/A,N/A
+correct stop,CCC,0,N/A,N/A
+correct stop,CCG,0,N/A,N/A
+correct stop,CCT,0,N/A,N/A
+correct stop,CGA,0,N/A,N/A
+correct stop,CGC,0,N/A,N/A
+correct stop,CGG,0,N/A,N/A
+correct stop,CGT,0,N/A,N/A
+correct stop,CTA,0,N/A,N/A
+correct stop,CTC,0,N/A,N/A
+correct stop,CTG,0,N/A,N/A
+correct stop,CTT,0,N/A,N/A
+correct stop,GAA,0,N/A,N/A
+correct stop,GAC,0,N/A,N/A
+correct stop,GAG,0,N/A,N/A
+correct stop,GAT,0,N/A,N/A
+correct stop,GCA,0,N/A,N/A
+correct stop,GCC,0,N/A,N/A
+correct stop,GCG,0,N/A,N/A
+correct stop,GCT,0,N/A,N/A
+correct stop,GGA,0,N/A,N/A
+correct stop,GGC,0,N/A,N/A
+correct stop,GGG,0,N/A,N/A
+correct stop,GGT,0,N/A,N/A
+correct stop,GTA,0,N/A,N/A
+correct stop,GTC,0,N/A,N/A
+correct stop,GTG,0,N/A,N/A
+correct stop,GTT,0,N/A,N/A
+correct stop,TAA,130,N/A,N/A
+correct stop,TAC,0,N/A,N/A
+correct stop,TAG,51,N/A,N/A
+correct stop,TAT,0,N/A,N/A
+correct stop,TCA,0,N/A,N/A
+correct stop,TCC,0,N/A,N/A
+correct stop,TCG,0,N/A,N/A
+correct stop,TCT,0,N/A,N/A
+correct stop,TGA,0,N/A,N/A
+correct stop,TGC,0,N/A,N/A
+correct stop,TGG,0,N/A,N/A
+correct stop,TGT,0,N/A,N/A
+correct stop,TTA,0,N/A,N/A
+correct stop,TTC,0,N/A,N/A
+correct stop,TTG,0,N/A,N/A
+correct stop,TTT,0,N/A,N/A
+alternative stop,AAA,0,N/A,N/A
+alternative stop,AAC,0,N/A,N/A
+alternative stop,AAG,0,N/A,N/A
+alternative stop,AAT,0,N/A,N/A
+alternative stop,ACA,0,N/A,N/A
+alternative stop,ACC,0,N/A,N/A
+alternative stop,ACG,0,N/A,N/A
+alternative stop,ACT,0,N/A,N/A
+alternative stop,AGA,0,N/A,N/A
+alternative stop,AGC,0,N/A,N/A
+alternative stop,AGG,0,N/A,N/A
+alternative stop,AGT,0,N/A,N/A
+alternative stop,ATA,0,N/A,N/A
+alternative stop,ATC,0,N/A,N/A
+alternative stop,ATG,0,N/A,N/A
+alternative stop,ATT,0,N/A,N/A
+alternative stop,CAA,0,N/A,N/A
+alternative stop,CAC,0,N/A,N/A
+alternative stop,CAG,0,N/A,N/A
+alternative stop,CAT,0,N/A,N/A
+alternative stop,CCA,0,N/A,N/A
+alternative stop,CCC,0,N/A,N/A
+alternative stop,CCG,0,N/A,N/A
+alternative stop,CCT,0,N/A,N/A
+alternative stop,CGA,0,N/A,N/A
+alternative stop,CGC,0,N/A,N/A
+alternative stop,CGG,0,N/A,N/A
+alternative stop,CGT,0,N/A,N/A
+alternative stop,CTA,0,N/A,N/A
+alternative stop,CTC,0,N/A,N/A
+alternative stop,CTG,0,N/A,N/A
+alternative stop,CTT,0,N/A,N/A
+alternative stop,GAA,0,N/A,N/A
+alternative stop,GAC,0,N/A,N/A
+alternative stop,GAG,0,N/A,N/A
+alternative stop,GAT,0,N/A,N/A
+alternative stop,GCA,0,N/A,N/A
+alternative stop,GCC,0,N/A,N/A
+alternative stop,GCG,0,N/A,N/A
+alternative stop,GCT,0,N/A,N/A
+alternative stop,GGA,0,N/A,N/A
+alternative stop,GGC,0,N/A,N/A
+alternative stop,GGG,0,N/A,N/A
+alternative stop,GGT,0,N/A,N/A
+alternative stop,GTA,0,N/A,N/A
+alternative stop,GTC,0,N/A,N/A
+alternative stop,GTG,0,N/A,N/A
+alternative stop,GTT,0,N/A,N/A
+alternative stop,TAA,0,N/A,N/A
+alternative stop,TAC,0,N/A,N/A
+alternative stop,TAG,0,N/A,N/A
+alternative stop,TAT,0,N/A,N/A
+alternative stop,TCA,0,N/A,N/A
+alternative stop,TCC,0,N/A,N/A
+alternative stop,TCG,0,N/A,N/A
+alternative stop,TCT,0,N/A,N/A
+alternative stop,TGA,295,N/A,N/A
+alternative stop,TGC,0,N/A,N/A
+alternative stop,TGG,0,N/A,N/A
+alternative stop,TGT,0,N/A,N/A
+alternative stop,TTA,0,N/A,N/A
+alternative stop,TTC,0,N/A,N/A
+alternative stop,TTG,0,N/A,N/A
+alternative stop,TTT,0,N/A,N/A
+incorrect stop,AAA,1,0.19651999999999997,5.088540606554041
+incorrect stop,AAC,0,0.09247999999999999,0.0
+incorrect stop,AAG,0,0.09247999999999999,0.0
+incorrect stop,AAT,0,0.19651999999999997,0.0
+incorrect stop,ACA,0,0.09247999999999999,0.0
+incorrect stop,ACC,0,0.04352,0.0
+incorrect stop,ACG,0,0.04352,0.0
+incorrect stop,ACT,0,0.09247999999999999,0.0
+incorrect stop,AGA,0,0.09247999999999999,0.0
+incorrect stop,AGC,0,0.04352,0.0
+incorrect stop,AGG,0,0.04352,0.0
+incorrect stop,AGT,0,0.09247999999999999,0.0
+incorrect stop,ATA,0,0.19651999999999997,0.0
+incorrect stop,ATC,0,0.09247999999999999,0.0
+incorrect stop,ATG,0,0.09247999999999999,0.0
+incorrect stop,ATT,0,0.19651999999999997,0.0
+incorrect stop,CAA,0,0.09247999999999999,0.0
+incorrect stop,CAC,0,0.04352,0.0
+incorrect stop,CAG,0,0.04352,0.0
+incorrect stop,CAT,0,0.09247999999999999,0.0
+incorrect stop,CCA,0,0.04352,0.0
+incorrect stop,CCC,0,0.020480000000000005,0.0
+incorrect stop,CCG,0,0.020480000000000005,0.0
+incorrect stop,CCT,0,0.04352,0.0
+incorrect stop,CGA,0,0.04352,0.0
+incorrect stop,CGC,0,0.020480000000000005,0.0
+incorrect stop,CGG,0,0.020480000000000005,0.0
+incorrect stop,CGT,0,0.04352,0.0
+incorrect stop,CTA,1,0.09247999999999999,10.813148788927336
+incorrect stop,CTC,0,0.04352,0.0
+incorrect stop,CTG,0,0.04352,0.0
+incorrect stop,CTT,0,0.09247999999999999,0.0
+incorrect stop,GAA,0,0.09247999999999999,0.0
+incorrect stop,GAC,0,0.04352,0.0
+incorrect stop,GAG,0,0.04352,0.0
+incorrect stop,GAT,0,0.09247999999999999,0.0
+incorrect stop,GCA,0,0.04352,0.0
+incorrect stop,GCC,1,0.020480000000000005,48.828124999999986
+incorrect stop,GCG,0,0.020480000000000005,0.0
+incorrect stop,GCT,0,0.04352,0.0
+incorrect stop,GGA,0,0.04352,0.0
+incorrect stop,GGC,0,0.020480000000000005,0.0
+incorrect stop,GGG,0,0.020480000000000005,0.0
+incorrect stop,GGT,0,0.04352,0.0
+incorrect stop,GTA,1,0.09247999999999999,10.813148788927336
+incorrect stop,GTC,0,0.04352,0.0
+incorrect stop,GTG,0,0.04352,0.0
+incorrect stop,GTT,0,0.09247999999999999,0.0
+incorrect stop,TAA,0,0.19651999999999997,0.0
+incorrect stop,TAC,0,0.09247999999999999,0.0
+incorrect stop,TAG,0,0.09247999999999999,0.0
+incorrect stop,TAT,0,0.19651999999999997,0.0
+incorrect stop,TCA,0,0.09247999999999999,0.0
+incorrect stop,TCC,0,0.04352,0.0
+incorrect stop,TCG,0,0.04352,0.0
+incorrect stop,TCT,0,0.09247999999999999,0.0
+incorrect stop,TGA,0,0.09247999999999999,0.0
+incorrect stop,TGC,0,0.04352,0.0
+incorrect stop,TGG,0,0.04352,0.0
+incorrect stop,TGT,0,0.09247999999999999,0.0
+incorrect stop,TTA,0,0.19651999999999997,0.0
+incorrect stop,TTC,0,0.09247999999999999,0.0
+incorrect stop,TTG,0,0.09247999999999999,0.0
+incorrect stop,TTT,1,0.19651999999999997,5.088540606554041
+correct start,AAA,0,N/A,N/A
+correct start,AAC,0,N/A,N/A
+correct start,AAG,0,N/A,N/A
+correct start,AAT,0,N/A,N/A
+correct start,ACA,0,N/A,N/A
+correct start,ACC,0,N/A,N/A
+correct start,ACG,0,N/A,N/A
+correct start,ACT,0,N/A,N/A
+correct start,AGA,0,N/A,N/A
+correct start,AGC,0,N/A,N/A
+correct start,AGG,0,N/A,N/A
+correct start,AGT,0,N/A,N/A
+correct start,ATA,0,N/A,N/A
+correct start,ATC,0,N/A,N/A
+correct start,ATG,158,N/A,N/A
+correct start,ATT,0,N/A,N/A
+correct start,CAA,0,N/A,N/A
+correct start,CAC,0,N/A,N/A
+correct start,CAG,0,N/A,N/A
+correct start,CAT,0,N/A,N/A
+correct start,CCA,0,N/A,N/A
+correct start,CCC,0,N/A,N/A
+correct start,CCG,0,N/A,N/A
+correct start,CCT,0,N/A,N/A
+correct start,CGA,0,N/A,N/A
+correct start,CGC,0,N/A,N/A
+correct start,CGG,0,N/A,N/A
+correct start,CGT,0,N/A,N/A
+correct start,CTA,0,N/A,N/A
+correct start,CTC,0,N/A,N/A
+correct start,CTG,0,N/A,N/A
+correct start,CTT,0,N/A,N/A
+correct start,GAA,0,N/A,N/A
+correct start,GAC,0,N/A,N/A
+correct start,GAG,0,N/A,N/A
+correct start,GAT,0,N/A,N/A
+correct start,GCA,0,N/A,N/A
+correct start,GCC,0,N/A,N/A
+correct start,GCG,0,N/A,N/A
+correct start,GCT,0,N/A,N/A
+correct start,GGA,0,N/A,N/A
+correct start,GGC,0,N/A,N/A
+correct start,GGG,0,N/A,N/A
+correct start,GGT,0,N/A,N/A
+correct start,GTA,0,N/A,N/A
+correct start,GTC,0,N/A,N/A
+correct start,GTG,5,N/A,N/A
+correct start,GTT,0,N/A,N/A
+correct start,TAA,0,N/A,N/A
+correct start,TAC,0,N/A,N/A
+correct start,TAG,0,N/A,N/A
+correct start,TAT,0,N/A,N/A
+correct start,TCA,0,N/A,N/A
+correct start,TCC,0,N/A,N/A
+correct start,TCG,0,N/A,N/A
+correct start,TCT,0,N/A,N/A
+correct start,TGA,0,N/A,N/A
+correct start,TGC,0,N/A,N/A
+correct start,TGG,0,N/A,N/A
+correct start,TGT,0,N/A,N/A
+correct start,TTA,0,N/A,N/A
+correct start,TTC,0,N/A,N/A
+correct start,TTG,2,N/A,N/A
+correct start,TTT,0,N/A,N/A
+alternative start,AAA,0,N/A,N/A
+alternative start,AAC,0,N/A,N/A
+alternative start,AAG,0,N/A,N/A
+alternative start,AAT,0,N/A,N/A
+alternative start,ACA,0,N/A,N/A
+alternative start,ACC,0,N/A,N/A
+alternative start,ACG,0,N/A,N/A
+alternative start,ACT,0,N/A,N/A
+alternative start,AGA,0,N/A,N/A
+alternative start,AGC,0,N/A,N/A
+alternative start,AGG,0,N/A,N/A
+alternative start,AGT,0,N/A,N/A
+alternative start,ATA,0,N/A,N/A
+alternative start,ATC,0,N/A,N/A
+alternative start,ATG,61,N/A,N/A
+alternative start,ATT,0,N/A,N/A
+alternative start,CAA,0,N/A,N/A
+alternative start,CAC,0,N/A,N/A
+alternative start,CAG,0,N/A,N/A
+alternative start,CAT,0,N/A,N/A
+alternative start,CCA,0,N/A,N/A
+alternative start,CCC,0,N/A,N/A
+alternative start,CCG,0,N/A,N/A
+alternative start,CCT,0,N/A,N/A
+alternative start,CGA,0,N/A,N/A
+alternative start,CGC,0,N/A,N/A
+alternative start,CGG,0,N/A,N/A
+alternative start,CGT,0,N/A,N/A
+alternative start,CTA,0,N/A,N/A
+alternative start,CTC,0,N/A,N/A
+alternative start,CTG,0,N/A,N/A
+alternative start,CTT,0,N/A,N/A
+alternative start,GAA,0,N/A,N/A
+alternative start,GAC,0,N/A,N/A
+alternative start,GAG,0,N/A,N/A
+alternative start,GAT,0,N/A,N/A
+alternative start,GCA,0,N/A,N/A
+alternative start,GCC,0,N/A,N/A
+alternative start,GCG,0,N/A,N/A
+alternative start,GCT,0,N/A,N/A
+alternative start,GGA,0,N/A,N/A
+alternative start,GGC,0,N/A,N/A
+alternative start,GGG,0,N/A,N/A
+alternative start,GGT,0,N/A,N/A
+alternative start,GTA,0,N/A,N/A
+alternative start,GTC,0,N/A,N/A
+alternative start,GTG,13,N/A,N/A
+alternative start,GTT,0,N/A,N/A
+alternative start,TAA,0,N/A,N/A
+alternative start,TAC,0,N/A,N/A
+alternative start,TAG,0,N/A,N/A
+alternative start,TAT,0,N/A,N/A
+alternative start,TCA,0,N/A,N/A
+alternative start,TCC,0,N/A,N/A
+alternative start,TCG,0,N/A,N/A
+alternative start,TCT,0,N/A,N/A
+alternative start,TGA,0,N/A,N/A
+alternative start,TGC,0,N/A,N/A
+alternative start,TGG,0,N/A,N/A
+alternative start,TGT,0,N/A,N/A
+alternative start,TTA,0,N/A,N/A
+alternative start,TTC,0,N/A,N/A
+alternative start,TTG,35,N/A,N/A
+alternative start,TTT,0,N/A,N/A
+incorrect start,AAA,9,2.3189359999999994,3.8810902931344384
+incorrect start,AAC,1,1.091264,0.91636854143452
+incorrect start,AAG,2,1.091264,1.83273708286904
+incorrect start,AAT,3,2.3189359999999994,1.293696764378146
+incorrect start,ACA,4,1.091264,3.66547416573808
+incorrect start,ACC,1,0.513536,1.947283150548355
+incorrect start,ACG,0,0.513536,0.0
+incorrect start,ACT,1,1.091264,0.91636854143452
+incorrect start,AGA,1,1.091264,0.91636854143452
+incorrect start,AGC,1,0.513536,1.947283150548355
+incorrect start,AGG,1,0.513536,1.947283150548355
+incorrect start,AGT,0,1.091264,0.0
+incorrect start,ATA,4,2.3189359999999994,1.7249290191708615
+incorrect start,ATC,1,1.091264,0.91636854143452
+incorrect start,ATG,0,1.091264,0.0
+incorrect start,ATT,1,2.3189359999999994,0.4312322547927154
+incorrect start,CAA,3,1.091264,2.74910562430356
+incorrect start,CAC,2,0.513536,3.89456630109671
+incorrect start,CAG,0,0.513536,0.0
+incorrect start,CAT,0,1.091264,0.0
+incorrect start,CCA,1,0.513536,1.947283150548355
+incorrect start,CCC,0,0.24166400000000005,0.0
+incorrect start,CCG,0,0.24166400000000005,0.0
+incorrect start,CCT,0,0.513536,0.0
+incorrect start,CGA,0,0.513536,0.0
+incorrect start,CGC,0,0.24166400000000005,0.0
+incorrect start,CGG,0,0.24166400000000005,0.0
+incorrect start,CGT,0,0.513536,0.0
+incorrect start,CTA,2,1.091264,1.83273708286904
+incorrect start,CTC,0,0.513536,0.0
+incorrect start,CTG,0,0.513536,0.0
+incorrect start,CTT,0,1.091264,0.0
+incorrect start,GAA,1,1.091264,0.91636854143452
+incorrect start,GAC,0,0.513536,0.0
+incorrect start,GAG,0,0.513536,0.0
+incorrect start,GAT,0,1.091264,0.0
+incorrect start,GCA,0,0.513536,0.0
+incorrect start,GCC,0,0.24166400000000005,0.0
+incorrect start,GCG,0,0.24166400000000005,0.0
+incorrect start,GCT,1,0.513536,1.947283150548355
+incorrect start,GGA,1,0.513536,1.947283150548355
+incorrect start,GGC,0,0.24166400000000005,0.0
+incorrect start,GGG,0,0.24166400000000005,0.0
+incorrect start,GGT,0,0.513536,0.0
+incorrect start,GTA,0,1.091264,0.0
+incorrect start,GTC,0,0.513536,0.0
+incorrect start,GTG,0,0.513536,0.0
+incorrect start,GTT,1,1.091264,0.91636854143452
+incorrect start,TAA,0,2.3189359999999994,0.0
+incorrect start,TAC,1,1.091264,0.91636854143452
+incorrect start,TAG,0,1.091264,0.0
+incorrect start,TAT,2,2.3189359999999994,0.8624645095854307
+incorrect start,TCA,1,1.091264,0.91636854143452
+incorrect start,TCC,1,0.513536,1.947283150548355
+incorrect start,TCG,0,0.513536,0.0
+incorrect start,TCT,1,1.091264,0.91636854143452
+incorrect start,TGA,0,1.091264,0.0
+incorrect start,TGC,1,0.513536,1.947283150548355
+incorrect start,TGG,0,0.513536,0.0
+incorrect start,TGT,1,1.091264,0.91636854143452
+incorrect start,TTA,1,2.3189359999999994,0.4312322547927154
+incorrect start,TTC,2,1.091264,1.83273708286904
+incorrect start,TTG,0,1.091264,0.0
+incorrect start,TTT,6,2.3189359999999994,2.587393528756292
+middle or alternative start,AAA,0,N/A,N/A
+middle or alternative start,AAC,0,N/A,N/A
+middle or alternative start,AAG,0,N/A,N/A
+middle or alternative start,AAT,0,N/A,N/A
+middle or alternative start,ACA,0,N/A,N/A
+middle or alternative start,ACC,0,N/A,N/A
+middle or alternative start,ACG,0,N/A,N/A
+middle or alternative start,ACT,0,N/A,N/A
+middle or alternative start,AGA,0,N/A,N/A
+middle or alternative start,AGC,0,N/A,N/A
+middle or alternative start,AGG,0,N/A,N/A
+middle or alternative start,AGT,0,N/A,N/A
+middle or alternative start,ATA,0,N/A,N/A
+middle or alternative start,ATC,0,N/A,N/A
+middle or alternative start,ATG,53,N/A,N/A
+middle or alternative start,ATT,0,N/A,N/A
+middle or alternative start,CAA,0,N/A,N/A
+middle or alternative start,CAC,0,N/A,N/A
+middle or alternative start,CAG,0,N/A,N/A
+middle or alternative start,CAT,0,N/A,N/A
+middle or alternative start,CCA,0,N/A,N/A
+middle or alternative start,CCC,0,N/A,N/A
+middle or alternative start,CCG,0,N/A,N/A
+middle or alternative start,CCT,0,N/A,N/A
+middle or alternative start,CGA,0,N/A,N/A
+middle or alternative start,CGC,0,N/A,N/A
+middle or alternative start,CGG,0,N/A,N/A
+middle or alternative start,CGT,0,N/A,N/A
+middle or alternative start,CTA,0,N/A,N/A
+middle or alternative start,CTC,0,N/A,N/A
+middle or alternative start,CTG,0,N/A,N/A
+middle or alternative start,CTT,0,N/A,N/A
+middle or alternative start,GAA,0,N/A,N/A
+middle or alternative start,GAC,0,N/A,N/A
+middle or alternative start,GAG,0,N/A,N/A
+middle or alternative start,GAT,0,N/A,N/A
+middle or alternative start,GCA,0,N/A,N/A
+middle or alternative start,GCC,0,N/A,N/A
+middle or alternative start,GCG,0,N/A,N/A
+middle or alternative start,GCT,0,N/A,N/A
+middle or alternative start,GGA,0,N/A,N/A
+middle or alternative start,GGC,0,N/A,N/A
+middle or alternative start,GGG,0,N/A,N/A
+middle or alternative start,GGT,0,N/A,N/A
+middle or alternative start,GTA,0,N/A,N/A
+middle or alternative start,GTC,0,N/A,N/A
+middle or alternative start,GTG,20,N/A,N/A
+middle or alternative start,GTT,0,N/A,N/A
+middle or alternative start,TAA,0,N/A,N/A
+middle or alternative start,TAC,0,N/A,N/A
+middle or alternative start,TAG,0,N/A,N/A
+middle or alternative start,TAT,0,N/A,N/A
+middle or alternative start,TCA,0,N/A,N/A
+middle or alternative start,TCC,0,N/A,N/A
+middle or alternative start,TCG,0,N/A,N/A
+middle or alternative start,TCT,0,N/A,N/A
+middle or alternative start,TGA,0,N/A,N/A
+middle or alternative start,TGC,0,N/A,N/A
+middle or alternative start,TGG,0,N/A,N/A
+middle or alternative start,TGT,0,N/A,N/A
+middle or alternative start,TTA,0,N/A,N/A
+middle or alternative start,TTC,0,N/A,N/A
+middle or alternative start,TTG,45,N/A,N/A
+middle or alternative start,TTT,0,N/A,N/A
+middle or alternative stop,AAA,0,N/A,N/A
+middle or alternative stop,AAC,0,N/A,N/A
+middle or alternative stop,AAG,0,N/A,N/A
+middle or alternative stop,AAT,0,N/A,N/A
+middle or alternative stop,ACA,0,N/A,N/A
+middle or alternative stop,ACC,0,N/A,N/A
+middle or alternative stop,ACG,0,N/A,N/A
+middle or alternative stop,ACT,0,N/A,N/A
+middle or alternative stop,AGA,0,N/A,N/A
+middle or alternative stop,AGC,0,N/A,N/A
+middle or alternative stop,AGG,0,N/A,N/A
+middle or alternative stop,AGT,0,N/A,N/A
+middle or alternative stop,ATA,0,N/A,N/A
+middle or alternative stop,ATC,0,N/A,N/A
+middle or alternative stop,ATG,0,N/A,N/A
+middle or alternative stop,ATT,0,N/A,N/A
+middle or alternative stop,CAA,0,N/A,N/A
+middle or alternative stop,CAC,0,N/A,N/A
+middle or alternative stop,CAG,0,N/A,N/A
+middle or alternative stop,CAT,0,N/A,N/A
+middle or alternative stop,CCA,0,N/A,N/A
+middle or alternative stop,CCC,0,N/A,N/A
+middle or alternative stop,CCG,0,N/A,N/A
+middle or alternative stop,CCT,0,N/A,N/A
+middle or alternative stop,CGA,0,N/A,N/A
+middle or alternative stop,CGC,0,N/A,N/A
+middle or alternative stop,CGG,0,N/A,N/A
+middle or alternative stop,CGT,0,N/A,N/A
+middle or alternative stop,CTA,0,N/A,N/A
+middle or alternative stop,CTC,0,N/A,N/A
+middle or alternative stop,CTG,0,N/A,N/A
+middle or alternative stop,CTT,0,N/A,N/A
+middle or alternative stop,GAA,0,N/A,N/A
+middle or alternative stop,GAC,0,N/A,N/A
+middle or alternative stop,GAG,0,N/A,N/A
+middle or alternative stop,GAT,0,N/A,N/A
+middle or alternative stop,GCA,0,N/A,N/A
+middle or alternative stop,GCC,0,N/A,N/A
+middle or alternative stop,GCG,0,N/A,N/A
+middle or alternative stop,GCT,0,N/A,N/A
+middle or alternative stop,GGA,0,N/A,N/A
+middle or alternative stop,GGC,0,N/A,N/A
+middle or alternative stop,GGG,0,N/A,N/A
+middle or alternative stop,GGT,0,N/A,N/A
+middle or alternative stop,GTA,0,N/A,N/A
+middle or alternative stop,GTC,0,N/A,N/A
+middle or alternative stop,GTG,0,N/A,N/A
+middle or alternative stop,GTT,0,N/A,N/A
+middle or alternative stop,TAA,0,N/A,N/A
+middle or alternative stop,TAC,0,N/A,N/A
+middle or alternative stop,TAG,0,N/A,N/A
+middle or alternative stop,TAT,0,N/A,N/A
+middle or alternative stop,TCA,0,N/A,N/A
+middle or alternative stop,TCC,0,N/A,N/A
+middle or alternative stop,TCG,0,N/A,N/A
+middle or alternative stop,TCT,0,N/A,N/A
+middle or alternative stop,TGA,83,N/A,N/A
+middle or alternative stop,TGC,0,N/A,N/A
+middle or alternative stop,TGG,0,N/A,N/A
+middle or alternative stop,TGT,0,N/A,N/A
+middle or alternative stop,TTA,0,N/A,N/A
+middle or alternative stop,TTC,0,N/A,N/A
+middle or alternative stop,TTG,0,N/A,N/A
+middle or alternative stop,TTT,0,N/A,N/A
+middle incorrect start,AAA,18,9.747391999999998,1.8466478007655796
+middle incorrect start,AAC,9,4.587008,1.962063288313428
+middle incorrect start,AAG,2,4.587008,0.43601406406965065
+middle incorrect start,AAT,16,9.747391999999998,1.6414647117916263
+middle incorrect start,ACA,5,4.587008,1.0900351601741265
+middle incorrect start,ACC,3,2.158592,1.3897948292220113
+middle incorrect start,ACG,0,2.158592,0.0
+middle incorrect start,ACT,6,4.587008,1.3080421922089518
+middle incorrect start,AGA,3,4.587008,0.6540210961044759
+middle incorrect start,AGC,2,2.158592,0.9265298861480076
+middle incorrect start,AGG,2,2.158592,0.9265298861480076
+middle incorrect start,AGT,7,4.587008,1.5260492242437773
+middle incorrect start,ATA,4,9.747391999999998,0.4103661779479066
+middle incorrect start,ATC,6,4.587008,1.3080421922089518
+middle incorrect start,ATG,0,4.587008,0.0
+middle incorrect start,ATT,12,9.747391999999998,1.2310985338437197
+middle incorrect start,CAA,8,4.587008,1.7440562562786026
+middle incorrect start,CAC,2,2.158592,0.9265298861480076
+middle incorrect start,CAG,4,2.158592,1.8530597722960152
+middle incorrect start,CAT,2,4.587008,0.43601406406965065
+middle incorrect start,CCA,1,2.158592,0.4632649430740038
+middle incorrect start,CCC,0,1.0158080000000003,0.0
+middle incorrect start,CCG,0,1.0158080000000003,0.0
+middle incorrect start,CCT,6,2.158592,2.7795896584440225
+middle incorrect start,CGA,0,2.158592,0.0
+middle incorrect start,CGC,0,1.0158080000000003,0.0
+middle incorrect start,CGG,0,1.0158080000000003,0.0
+middle incorrect start,CGT,3,2.158592,1.3897948292220113
+middle incorrect start,CTA,2,4.587008,0.43601406406965065
+middle incorrect start,CTC,1,2.158592,0.4632649430740038
+middle incorrect start,CTG,0,2.158592,0.0
+middle incorrect start,CTT,2,4.587008,0.43601406406965065
+middle incorrect start,GAA,10,4.587008,2.180070320348253
+middle incorrect start,GAC,4,2.158592,1.8530597722960152
+middle incorrect start,GAG,4,2.158592,1.8530597722960152
+middle incorrect start,GAT,10,4.587008,2.180070320348253
+middle incorrect start,GCA,10,2.158592,4.632649430740038
+middle incorrect start,GCC,1,1.0158080000000003,0.9844380040322578
+middle incorrect start,GCG,1,1.0158080000000003,0.9844380040322578
+middle incorrect start,GCT,4,2.158592,1.8530597722960152
+middle incorrect start,GGA,6,2.158592,2.7795896584440225
+middle incorrect start,GGC,0,1.0158080000000003,0.0
+middle incorrect start,GGG,2,1.0158080000000003,1.9688760080645156
+middle incorrect start,GGT,6,2.158592,2.7795896584440225
+middle incorrect start,GTA,2,4.587008,0.43601406406965065
+middle incorrect start,GTC,2,2.158592,0.9265298861480076
+middle incorrect start,GTG,0,2.158592,0.0
+middle incorrect start,GTT,8,4.587008,1.7440562562786026
+middle incorrect start,TAA,0,9.747391999999998,0.0
+middle incorrect start,TAC,1,4.587008,0.21800703203482533
+middle incorrect start,TAG,0,4.587008,0.0
+middle incorrect start,TAT,8,9.747391999999998,0.8207323558958132
+middle incorrect start,TCA,3,4.587008,0.6540210961044759
+middle incorrect start,TCC,1,2.158592,0.4632649430740038
+middle incorrect start,TCG,0,2.158592,0.0
+middle incorrect start,TCT,3,4.587008,0.6540210961044759
+middle incorrect start,TGA,0,4.587008,0.0
+middle incorrect start,TGC,0,2.158592,0.0
+middle incorrect start,TGG,1,2.158592,0.4632649430740038
+middle incorrect start,TGT,1,4.587008,0.21800703203482533
+middle incorrect start,TTA,13,9.747391999999998,1.3336900783306964
+middle incorrect start,TTC,3,4.587008,0.6540210961044759
+middle incorrect start,TTG,0,4.587008,0.0
+middle incorrect start,TTT,18,9.747391999999998,1.8466478007655796
+middle incorrect stop,AAA,59,30.775031999999992,1.91713854269916
+middle incorrect stop,AAC,24,14.482368,1.6571875538585956
+middle incorrect stop,AAG,22,14.482368,1.519088591037046
+middle incorrect stop,AAT,35,30.775031999999992,1.1372855761774678
+middle incorrect stop,ACA,23,14.482368,1.5881380724478207
+middle incorrect stop,ACC,7,6.815232,1.0271110359852753
+middle incorrect stop,ACG,1,6.815232,0.14673014799789647
+middle incorrect stop,ACT,24,14.482368,1.6571875538585956
+middle incorrect stop,AGA,17,14.482368,1.173841183983172
+middle incorrect stop,AGC,6,6.815232,0.8803808879873789
+middle incorrect stop,AGG,2,6.815232,0.29346029599579293
+middle incorrect stop,AGT,16,14.482368,1.104791702572397
+middle incorrect stop,ATA,12,30.775031999999992,0.3899264832608461
+middle incorrect stop,ATC,12,14.482368,0.8285937769292978
+middle incorrect stop,ATG,8,14.482368,0.5523958512861985
+middle incorrect stop,ATT,39,30.775031999999992,1.2672610705977498
+middle incorrect stop,CAA,40,14.482368,2.7619792564309926
+middle incorrect stop,CAC,4,6.815232,0.5869205919915859
+middle incorrect stop,CAG,8,6.815232,1.1738411839831717
+middle incorrect stop,CAT,12,14.482368,0.8285937769292978
+middle incorrect stop,CCA,11,6.815232,1.6140316279768612
+middle incorrect stop,CCC,1,3.2071680000000007,0.3118015644955299
+middle incorrect stop,CCG,0,3.2071680000000007,0.0
+middle incorrect stop,CCT,10,6.815232,1.4673014799789648
+middle incorrect stop,CGA,0,6.815232,0.0
+middle incorrect stop,CGC,4,3.2071680000000007,1.2472062579821197
+middle incorrect stop,CGG,3,3.2071680000000007,0.9354046934865898
+middle incorrect stop,CGT,4,6.815232,0.5869205919915859
+middle incorrect stop,CTA,11,14.482368,0.759544295518523
+middle incorrect stop,CTC,2,6.815232,0.29346029599579293
+middle incorrect stop,CTG,4,6.815232,0.5869205919915859
+middle incorrect stop,CTT,12,14.482368,0.8285937769292978
+middle incorrect stop,GAA,41,14.482368,2.8310287378417676
+middle incorrect stop,GAC,7,6.815232,1.0271110359852753
+middle incorrect stop,GAG,4,6.815232,0.5869205919915859
+middle incorrect stop,GAT,26,14.482368,1.7952865166801453
+middle incorrect stop,GCA,19,6.815232,2.787872811960033
+middle incorrect stop,GCC,2,3.2071680000000007,0.6236031289910599
+middle incorrect stop,GCG,4,3.2071680000000007,1.2472062579821197
+middle incorrect stop,GCT,24,6.815232,3.5215235519495156
+middle incorrect stop,GGA,9,6.815232,1.3205713319810684
+middle incorrect stop,GGC,3,3.2071680000000007,0.9354046934865898
+middle incorrect stop,GGG,3,3.2071680000000007,0.9354046934865898
+middle incorrect stop,GGT,20,6.815232,2.9346029599579295
+middle incorrect stop,GTA,14,14.482368,0.9666927397508475
+middle incorrect stop,GTC,3,6.815232,0.44019044399368945
+middle incorrect stop,GTG,7,6.815232,1.0271110359852753
+middle incorrect stop,GTT,21,14.482368,1.450039109626271
+middle incorrect stop,TAA,0,30.775031999999992,0.0
+middle incorrect stop,TAC,6,14.482368,0.4142968884646489
+middle incorrect stop,TAG,0,14.482368,0.0
+middle incorrect stop,TAT,15,30.775031999999992,0.4874081040760576
+middle incorrect stop,TCA,11,14.482368,0.759544295518523
+middle incorrect stop,TCC,1,6.815232,0.14673014799789647
+middle incorrect stop,TCG,1,6.815232,0.14673014799789647
+middle incorrect stop,TCT,11,14.482368,0.759544295518523
+middle incorrect stop,TGA,0,14.482368,0.0
+middle incorrect stop,TGC,0,6.815232,0.0
+middle incorrect stop,TGG,4,6.815232,0.5869205919915859
+middle incorrect stop,TGT,5,14.482368,0.3452474070538741
+middle incorrect stop,TTA,37,30.775031999999992,1.2022733233876088
+middle incorrect stop,TTC,5,14.482368,0.3452474070538741
+middle incorrect stop,TTG,10,14.482368,0.6904948141077482
+middle incorrect stop,TTT,37,30.775031999999992,1.2022733233876088

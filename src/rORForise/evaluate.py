@@ -333,8 +333,7 @@ def evaluate(intersect_bed_filename, preds, gc_prob, output_dir, output_prefix="
     }
 
     #with gzip.open(intersect_bed_filename, 'rt') as f:
-    with (gzip.open(intersect_bed_filename, 'rt', encoding='utf-8') if intersect_bed_filename.endswith('.gz') else open(intersect_bed_filename,
-                                                                                                        'r', encoding='utf-8')) as f:
+    with (gzip.open(intersect_bed_filename, 'rt', encoding='utf-8') if intersect_bed_filename.endswith('.gz') else open(intersect_bed_filename,'r', encoding='utf-8')) as f:
 
         csvr = csv.reader(f, delimiter="\t")
         header = next(csvr)  # ignore single header line

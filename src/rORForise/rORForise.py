@@ -26,6 +26,8 @@ def parse_args():
     parser.add_argument('-gc_prob', type=float, required=True,
                         help="GC probability of the genome being processed (e.g., 0.3169 for Mycoplasma genitalium).")
 
+    parser.add_argument('-prefix', '--output_prefix', type=str, default="orf_evaluation", help="Prefix to add to output files. Default is orf_evaluation.") 
+
     parser.add_argument('-l', '--overlap_threshold', type=int, default=60, help="Minimum number of bases of overlap that are required for the read to overlap the CDS by before a prediction is inspected.")
                         
     return parser.parse_args()
@@ -39,12 +41,12 @@ def main():
         shutil.rmtree(options.output_dir)
     os.makedirs(options.output_dir)
 
-    total_preds, preds = evaluate.read_preds(options.predictions_gff, options.output_dir)
+    total_preds, preds = evaluate.read_preds(options.predictions_gff, options.output_dir, options.output_prefix)
     print("Number of predictions made for reads", total_preds, sep="\t")
 
     intersect_bed_filename = options.intersect_bed[0]
 
-    evaluate.evaluate(intersect_bed_filename, preds, options.gc_prob, options.output_dir, options.overlap_threshold)
+    evaluate.evaluate(intersect_bed_filename, preds, options.gc_prob, options.output_dir, options.output_prefix, options.overlap_threshold)
 
 
 if __name__ == "__main__":

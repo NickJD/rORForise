@@ -6,7 +6,7 @@ Read-based gene coverage evaluation
 ### Menu - (rORForise -h):  
 ```bash
 Running rORForise
-usage: rORForise_Testing.py [-h] -d DIRECTORY -g GENOMES [GENOMES ...] --gc_prob GC_PROB -f FRAGMENTATION_TYPES [FRAGMENTATION_TYPES ...] -s SUBGROUPS [SUBGROUPS ...] -m METHODS
+usage: rORForise [-h] -d DIRECTORY -g GENOMES [GENOMES ...] --gc_prob GC_PROB -f FRAGMENTATION_TYPES [FRAGMENTATION_TYPES ...] -s SUBGROUPS [SUBGROUPS ...] -m METHODS
                     [METHODS ...]
 
 Process genome evaluation parameters.

@@ -1,0 +1,19 @@
+answer_type,count,percentage,denominator,context
+correct start,165,56.12,294,predictions overlapping CDS start
+correct stop,181,67.04,270,predictions overlapping CDS stop
+correct frame,3494,91.08,3836,all on-target predictions
+correct direction,3587,93.51,3836,all on-target predictions
+incorrect stop,70,25.93,270,predictions overlapping CDS stop
+incorrect start,119,40.48,294,predictions overlapping CDS start
+incorrect frame,93,2.42,3836,all on-target predictions
+incorrect direction,249,6.49,3836,all on-target predictions
+prediction ends before cds starts,11,0.29,3836,all on-target predictions
+prediction starts after cds ends,9,0.23,3836,all on-target predictions
+alternative start,109,37.07,294,predictions overlapping CDS start
+middle or alternative start,118,3.61,3272,predictions in CDS middle only
+alternative stop,295,109.26,270,predictions overlapping CDS stop
+middle or alternative stop,83,2.54,3272,predictions in CDS middle only
+middle,2840,86.80,3272,predictions in CDS middle only
+middle incorrect start,248,7.58,3272,predictions in CDS middle only
+middle incorrect stop,783,23.93,3272,predictions in CDS middle only
+not enough read-CDS overlap,448,10.77,4160,all CDS-aligned reads

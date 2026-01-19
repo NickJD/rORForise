@@ -1,0 +1,11 @@
+metric,value
+timestamp,2025-10-31T15:21:24.001352
+total_number_of_reads,4611
+total_cds_aligned_reads,4160
+reads_without_predictions,391
+reads_good_overlap,4082
+reads_good_overlap_with_preds,3822
+total_predictions,4011
+on_target_predictions,3836
+prediction_coverage,0.936
+avg_preds_per_read,0.87

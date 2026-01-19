@@ -155,7 +155,7 @@ def write_prediction_length_csv(pred_length_distn, output_dir, output_prefix):
             writer.writerow([length, count, f"{frequency:.4f}"])
 
 
-def evaluate(intersect_bed_filename, preds, gc_prob, output_dir, output_prefix="orf_evaluation"):
+def evaluate(intersect_bed_filename, preds, gc_prob, output_dir, output_prefix="orf_evaluation", overlap_threshold=60):
 
     number_of_CDS_mappings_with_predictions = 0
     number_of_on_target_preds = 0
@@ -181,7 +181,7 @@ def evaluate(intersect_bed_filename, preds, gc_prob, output_dir, output_prefix="
                 cds_start = int(bed_row[7])
                 cds_end = int(bed_row[8])
 
-                if min(read_end, cds_end) - max(read_start, cds_start) + 1 < 60:
+                if min(read_end, cds_end) - max(read_start, cds_start) + 1 < overlap_threshold:
                     # the read does not overlap the CDS by enough for a pred
                     answer_counts[cp.answers["not enough read-CDS overlap"]] += 1
                     if read_name in preds:

@@ -1,23 +1,11 @@
-#!/usr/bin/env python3
-"""
-Fragment a genome into read-like chunks and generate realistic alignment files.
-
-Creates:
-1. FASTA file with fragmented reads
-2. BED file simulating genome alignments (similar to bedtools intersect output)
-3. Optional SAM file for more realistic simulation
-
-This is useful for testing ORF prediction tools on simulated sequencing data.
-"""
-
 import argparse
 import random
 import gzip
-from pathlib import Path
+
 
 
 def parse_fasta(fasta_file):
-    """Parse FASTA file and return sequence with header."""
+    # Parse FASTA file and return sequence with header.
     sequences = {}
     current_header = None
     current_seq = []

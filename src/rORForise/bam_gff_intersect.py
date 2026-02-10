@@ -9,7 +9,7 @@ except (ModuleNotFoundError, ImportError, NameError, TypeError) as error:
     from utils import *
 
 def parse_gff(gff_file):
-    """Parse GFF file and return a list of tuples."""
+    # Parse GFF file and return a list of tuples.
     gene_list = []
     with open(gff_file, 'r') as f:
         for line in f:
@@ -32,7 +32,7 @@ def parse_gff(gff_file):
     return gene_list
 
 def process_bam_and_gff(bam_file, gff_file, features, output_file):
-    """Process BAM and GFF files and output information in a tab-separated file."""
+    # Process BAM and GFF files and output information in a tab-separated file.
     # Parse GFF file
     gff_data = parse_gff(gff_file)
 

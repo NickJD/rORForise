@@ -5,57 +5,27 @@ Read-based gene coverage evaluation
 
 ### Menu - (rORForise -h):  
 ```bash
-Running rORForise
-usage: rORForise [-h] -d DIRECTORY -g GENOMES [GENOMES ...] --gc_prob GC_PROB -f FRAGMENTATION_TYPES [FRAGMENTATION_TYPES ...] -s SUBGROUPS [SUBGROUPS ...] -m METHODS
-                    [METHODS ...]
+usage: rORForise.py [-h] -int_bed INTERSECT_BED -p_gff PREDICTIONS_GFF -o OUTPUT_DIR -gc_prob GC_PROB [-prefix OUTPUT_PREFIX] [-l OVERLAP_THRESHOLD] [--verbose]
 
-Process genome evaluation parameters.
+rORForise version: v0.0.4 - Process genome evaluation parameters.
 
 options:
   -h, --help            show this help message and exit
-  -d DIRECTORY, --directory DIRECTORY
-                        Path to the main directory containing genome processing subdirectories.
-  -g GENOMES [GENOMES ...], --genomes GENOMES [GENOMES ...]
-                        List of genome names to process. Example: 'Mycoplasma_genitalium_G37 Staphylococcus_aureus_502A'
-  --gc_prob GC_PROB     GC probability of the genome being processed (e.g., 0.3169 for Mycoplasma genitalium).
-  -f FRAGMENTATION_TYPES [FRAGMENTATION_TYPES ...], --fragmentation_types FRAGMENTATION_TYPES [FRAGMENTATION_TYPES ...]
-                        List of fragmentation types to use (e.g., 'ART_errFree').
-  -s SUBGROUPS [SUBGROUPS ...], --subgroups SUBGROUPS [SUBGROUPS ...]
-                        List of subgroups for evaluation (e.g., 'Combined').
-  -m METHODS [METHODS ...], --methods METHODS [METHODS ...]
-                        List of methods for evaluation (e.g., 'FragGeneScan').
+  -int_bed, --intersect_bed INTERSECT_BED
+                        File path to intersect bedfile with read to CDS mappings.
+  -p_gff, --predictions_gff PREDICTIONS_GFF
+                        Path to the predictions in GFF format.
+  -o, --output_dir OUTPUT_DIR
+                        Directory to store output files.
+  -gc_prob GC_PROB      GC probability of the genome being processed (e.g., 0.3169 for Mycoplasma genitalium).
+  -prefix, --output_prefix OUTPUT_PREFIX
+                        Prefix to add to output files. Default is orf_evaluation.
+  -l, --overlap_threshold OVERLAP_THRESHOLD
+                        Minimum number of bases of overlap that are required for the read to overlap the CDS by before a prediction is inspected.
+  --verbose             Verbose output
+
 ```
 ## Example Run:
 ```bash
-rORForise -d "../../Genome_Processing" -g "Mycoplasma_genitalium_G37" -f "ART_errFree" -s "Combined" -m "FragGeneScan" --gc_prob 0.3169
-```
-```bash
-Running rORForise
-Mycoplasma_genitalium_G37
-FragGeneScan
-ART_errFree
-../../Genome_Processing/Mycoplasma_genitalium_G37/FragGeneScan *_ART_errFree_Combined.gff.gz ['../../Genome_Processing/Mycoplasma_genitalium_G37/FragGeneScan/FragGeneScan_ART_errFree_Combined.gff.gz']
-../../Genome_Processing/Mycoplasma_genitalium_G37/FragGeneScan/FragGeneScan_ART_errFree_Combined.gff.gz
-Number of predictions made for reads    69709
-Number of CDS-aligned reads     70073
-Number of CDS-aligned reads without predictions 5929
-Number of CDS-aligned reads with at least one pred      64440
-Number of predictions   69430
-Number of on-target preds       64695
-correct start   1211
-correct stop    2030
-correct frame   57249
-correct direction       60168
-incorrect stop  13624
-incorrect start 8015
-incorrect frame 2919
-incorrect direction     4527
-prediction ends before cds starts       660
-prediction starts after cds ends        713
-alternative start       1837
-middle or alternative start     1913
-alternative stop        5201
-middle or alternative stop      1166
-middle  49700
-... Below is the output of the Codon predictions ...
+rORForise-int_bed ~/Genome_Processing/Escherichia_coli_k_12/Processing/Escherichia_coli_k_12_Reads_Intersect.tsv.gz -p_gff ~/Genome_Processing/Escherichia_coli_k_12/FragGeneScan/FragGeneScan_ART_errFree_Combined.gff.gz -o ~/rORForise_FGS_Ecoli_testing  -gc 0.39```
 ```

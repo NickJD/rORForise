@@ -1,11 +1,13 @@
 import os
 import gzip
 
+rORForise_VERSION = "v0.0.4"
 
 
 def reverse_complement(seq):
     complement = {'A': 'T', 'T': 'A', 'G': 'C', 'C': 'G', 'N': 'N'}
-    return ''.join(complement[base] for base in reversed(seq))
+    return ''.join(complement.get(base, 'N') for base in reversed(seq))
+
 
 def fix_path(path):
     fixed_path = os.path.normpath(path)

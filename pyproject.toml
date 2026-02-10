@@ -1,7 +1,46 @@
 [build-system]
-requires = [
-    "setuptools",
-    "wheel",
-]
+requires = ["setuptools", "wheel", "levenshtein"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "rORForise"
+version = "0.0.4"
+authors = [
+    {name = "Nicholas Dimonaco", email = "nicholas@dimonaco.co.uk"}
+]
+description = "rORForise - A a tool to study read-level gene predictions."
+readme = "README.md"
+requires-python = ">=3.10"
+license = {file = "LICENSE"}
+keywords = ["Genome annotation", "Gene Prediction"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+
+]
+
+[project.urls]
+Homepage = "https://github.com/NickJD/rORForise"
+"Bug Tracker" = "https://github.com/NickJD/rORForise/issues"
+
+[project.scripts]
+    rORForise = "rORForise.rORForise:main"
+    bam-gff-intersect = "rORForise.bam_gff_intersect:main"
+
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["rORForise*"]
+
+[tool.setuptools.package-data]
+ORForise = [
+]
+
+
 

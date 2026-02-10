@@ -1,20 +1,19 @@
 import argparse
 import shutil
-import os
 
-try: # Try to import from the package if available
-    from .constants import *
-    #from .evaluate import evaluate as evaluate
-    from .evaluate import *
-except (ModuleNotFoundError, ImportError, NameError, TypeError) as error:
-    from constants import *
-    #from evaluate import evaluate as evaluate
-    import evaluate
+try:
+    from .utils import *
+    from .evaluate import read_preds, evaluate
+except (ImportError, ModuleNotFoundError):
+    from utils import *
+    from evaluate import read_preds, evaluate
+
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="rORForise version: " + rORForise_VERSION + " - Process genome evaluation parameters.")
 
-    parser.add_argument('-int_bed', '--intersect_bed', type=str, nargs='+', required=True,
+    parser.add_argument('-int_bed', '--intersect_bed', type=str, required=True,
                         help="File path to intersect bedfile with read to CDS mappings.")
 
     parser.add_argument('-p_gff', '--predictions_gff', type=str, required=True,
@@ -29,7 +28,9 @@ def parse_args():
     parser.add_argument('-prefix', '--output_prefix', type=str, default="orf_evaluation", help="Prefix to add to output files. Default is orf_evaluation.") 
 
     parser.add_argument('-l', '--overlap_threshold', type=int, default=60, help="Minimum number of bases of overlap that are required for the read to overlap the CDS by before a prediction is inspected.")
-                        
+
+    parser.add_argument('--verbose', action='store_true', help='Verbose output')
+
     return parser.parse_args()
 
 
@@ -41,14 +42,9 @@ def main():
         shutil.rmtree(options.output_dir)
     os.makedirs(options.output_dir)
 
-    total_preds, preds = evaluate.read_preds(options.predictions_gff, options.output_dir, options.output_prefix)
-    print("Number of predictions made for reads", total_preds, sep="\t")
-
-    intersect_bed_filename = options.intersect_bed[0]
-
-    evaluate.evaluate(intersect_bed_filename, preds, options.gc_prob, options.output_dir, options.output_prefix, options.overlap_threshold)
+    total_preds, preds = read_preds(options.predictions_gff, options.output_dir, options.output_prefix, verbose=options.verbose)
+    evaluate(options.intersect_bed, preds, options.gc_prob, options.output_dir, options.output_prefix, options.overlap_threshold, verbose=options.verbose)
 
 
 if __name__ == "__main__":
-    print("Running rORForise")
     main()

@@ -39,7 +39,7 @@ where = ["src"]
 include = ["rORForise*"]
 
 [tool.setuptools.package-data]
-ORForise = [
+rORForise = [
 ]
 
 

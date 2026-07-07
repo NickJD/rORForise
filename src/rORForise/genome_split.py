@@ -8,8 +8,10 @@ import sys
 
 try:
     from .utils import *
+    from .constants import *
 except (ModuleNotFoundError, ImportError, NameError, TypeError):
     from utils import *
+    from constants import *
 
 # Data structures for better organisation
 CDSAnnotation = namedtuple('CDSAnnotation', ['chrom', 'start', 'end', 'strand', 'gene_id', 'attributes'])
@@ -385,7 +387,7 @@ def generate_statistics_report(synthetic_reads, cds_annotations, output_stats):
 
 def main():
     parser = argparse.ArgumentParser(
-        description=f"Enhanced synthetic read generator v {rORForise_VERSION} - "
+        description=f"Enhanced synthetic read generator {rORForise_VERSION} - "
                     "Generate realistic synthetic reads for validating gene prediction algorithms.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )

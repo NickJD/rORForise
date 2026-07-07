@@ -23,7 +23,7 @@ except Exception:
         import check_pred as cp
     except Exception:
         import importlib.util, os
-        repo_root = Path(__file__).resolve().parents[1]
+        repo_root = Path(__file__).resolve().parents[2]
         candidate = repo_root / 'src' / 'rORForise' / 'check_pred.py'
         if candidate.exists():
             spec = importlib.util.spec_from_file_location('check_pred', str(candidate))
@@ -44,6 +44,14 @@ def generate_sequence(length, gc_content=0.32):
     return ''.join(bases)
 
 
+def choose_strand(strand_mode='mixed'):
+    if strand_mode == 'plus':
+        return '+'
+    if strand_mode == 'minus':
+        return '-'
+    return random.choice(['+', '-'])
+
+
 def reverse_complement(seq):
     complement = {'A': 'T', 'T': 'A', 'G': 'C', 'C': 'G', 'N': 'N'}
     return ''.join(complement.get(base, 'N') for base in reversed(seq))
@@ -56,21 +64,20 @@ def insert_codon_at_position(seq, position, codon):
     return seq[:position] + codon + seq[position + 3:]
 
 
-def generate_cds_features(num_cds=50, min_length=300, max_length=1500, genome_size=580076):
+def generate_cds_features(num_cds=50, min_length=300, max_length=1500, genome_size=580076, strand_mode='mixed'):
     cds_features = []
     for _ in range(num_cds):
         length = random.randint(min_length, max_length)
         length = (length // 3) * 3
         start = random.randint(1000, genome_size - length - 1000)
         end = start + length - 1
-        # allow CDS on either strand
-        strand = random.choice(['+', '-'])
+        strand = choose_strand(strand_mode)
         cds_features.append((start, end, strand))
     cds_features.sort(key=lambda x: x[0])
     return cds_features
 
 
-def generate_read_mapping(cds_start, cds_end, cds_strand, read_length=150, scenario='correct_start'):
+def generate_read_mapping(cds_start, cds_end, cds_strand, read_length=150, scenario='correct_start', allow_strand_flip=True):
     # Simple deterministic mappings that approximate scenarios
     if scenario in ('correct_start', 'left_overhang'):
         overhang = random.randint(10, 50)
@@ -107,7 +114,7 @@ def generate_read_mapping(cds_start, cds_end, cds_strand, read_length=150, scena
         read_strand = cds_strand
 
     # occasionally flip read strand to simulate reads mapping to opposite strand
-    if random.random() < 0.3:
+    if allow_strand_flip and random.random() < 0.3:
         read_strand = '-' if read_strand == '+' else '+'
 
     return read_start, read_end, read_strand
@@ -138,45 +145,65 @@ def generate_prediction(read_start, read_end, read_strand, cds_start, cds_end, c
     }
     default_pred_strand = pred_strand_map.get(category, read_strand)
 
-    def make_pred(start_on_read, length=120, strand=read_strand):
-        end_on_read = min(read_length, start_on_read + length - 1)
-        return start_on_read, end_on_read, strand
+    gene_start_coord = cds_start if cds_strand == '+' else cds_end
+    gene_stop_coord = cds_end if cds_strand == '+' else cds_start
+    read_captures_start = read_start <= cds_start if cds_strand == '+' else read_end >= cds_end
+    read_captures_stop = read_end >= cds_end if cds_strand == '+' else read_start <= cds_start
 
-    def map_cds_coord_to_pred(cds_coord, which='start', length=120, pred_strand=default_pred_strand):
-        """Map a genome coordinate (cds_coord) to a prediction (start,end) on the read.
-        This computes positions relative to the read sequence passed into this
-        function (the read_seq should already be oriented according to read_strand).
-        """
+    def genome_to_read_pos(cds_coord):
         if read_strand == '+':
-            pos = cds_coord - read_start + 1
-        else:
-            # read is reverse-oriented relative to genome; first base of read_seq
-            # corresponds to genome coordinate read_end
-            pos = read_end - cds_coord + 1
+            return cds_coord - read_start + 1
+        return read_end - cds_coord + 1
 
-        if which == 'start':
+    def make_boundary_prediction(cds_coord, boundary='start', length=120):
+        pos = genome_to_read_pos(cds_coord)
+
+        if boundary == 'start' and default_pred_strand == '+':
             pstart = pos
             pend = pos + length - 1
-        else:
+        elif boundary == 'start':
             pend = pos
             pstart = pos - length + 1
+        elif default_pred_strand == '+':
+            pend = pos
+            pstart = pos - length + 1
+        else:
+            pstart = pos
+            pend = pos + length - 1
 
-        # clamp into read coordinates
         pstart = max(1, pstart)
         pend = max(1, min(read_length, pend))
-        return pstart, pend
+        return min(pstart, pend), max(pstart, pend)
+
+    def set_start_codon(seq, pstart, pend, codon):
+        if default_pred_strand == '+':
+            pos = pstart - 1
+            inserted = codon
+        else:
+            pos = pend - 3
+            inserted = reverse_complement(codon)
+        if 0 <= pos <= len(seq) - 3:
+            return insert_codon_at_position(seq, pos, inserted)
+        return seq
+
+    def set_stop_codon(seq, pstart, pend, codon):
+        if default_pred_strand == '+':
+            pos = pend - 3
+            inserted = codon
+        else:
+            pos = pstart - 1
+            inserted = reverse_complement(codon)
+        if 0 <= pos <= len(seq) - 3:
+            return insert_codon_at_position(seq, pos, inserted)
+        return seq
 
     # Simple heuristics for predictions depending on scenario
     if scenario == 'correct_start':
-        if category in (('+', '+'), ('+', '-')) and read_start <= cds_start:
-            pred_start_on_read = max(1, cds_start - read_start + 1 + frame_offset)
-            pred_start_on_read, pred_end_on_read = map_cds_coord_to_pred(cds_start, 'start', 120, default_pred_strand)
+        if read_captures_start:
+            pred_start_on_read, pred_end_on_read = make_boundary_prediction(gene_start_coord, 'start', 120)
             pred = (pred_start_on_read, pred_end_on_read, default_pred_strand)
-            # insert ATG
-            pos = pred[0] - 1
-            if 0 <= pos <= len(read_seq) - 3:
-                read_seq = insert_codon_at_position(read_seq, pos, 'ATG')
-                expected['pred_start_codon'] = 'ATG'
+            read_seq = set_start_codon(read_seq, pred[0], pred[1], 'ATG')
+            expected['pred_start_codon'] = 'ATG'
             expected['should_overlap_start'] = True
             expected['expected_answers'] = ['correct direction']
             if frame_offset == 0:
@@ -189,12 +216,10 @@ def generate_prediction(read_start, read_end, read_strand, cds_start, cds_end, c
             return (pred[0], pred[1], pred[2], read_seq, expected)
 
     if scenario == 'correct_stop':
-        if category in (('+', '+'), ('+', '-')) and read_end >= cds_end:
-            pred_start_on_read, pred_end_on_read = map_cds_coord_to_pred(cds_end, 'end', 150, default_pred_strand)
-            pos = pred_end_on_read - 3
-            if 0 <= pos <= len(read_seq) - 3:
-                read_seq = insert_codon_at_position(read_seq, pos, 'TAA')
-                expected['pred_stop_codon'] = 'TAA'
+        if read_captures_stop:
+            pred_start_on_read, pred_end_on_read = make_boundary_prediction(gene_stop_coord, 'stop', 150)
+            read_seq = set_stop_codon(read_seq, pred_start_on_read, pred_end_on_read, 'TAA')
+            expected['pred_stop_codon'] = 'TAA'
             expected['should_overlap_stop'] = True
             expected['expected_answers'] = ['correct direction']
             if frame_offset == 0:
@@ -206,29 +231,40 @@ def generate_prediction(read_start, read_end, read_strand, cds_start, cds_end, c
             return (pred_start_on_read, pred_end_on_read, default_pred_strand, read_seq, expected)
 
     if scenario == 'alternative_start':
-        if category in (('+', '+'), ('+', '-')) and read_start <= cds_start:
-            pred_start_on_read, pred_end_on_read = map_cds_coord_to_pred(cds_start, 'start', 120, default_pred_strand)
-            pos = pred_start_on_read - 1
+        if read_captures_start:
+            pred_start_on_read, pred_end_on_read = make_boundary_prediction(gene_start_coord, 'start', 120)
+            if default_pred_strand == '+':
+                if pred_start_on_read + 3 <= read_length:
+                    pred_start_on_read += 3
+                else:
+                    pred_start_on_read = max(1, pred_start_on_read - 3)
+            else:
+                if pred_end_on_read - 3 >= pred_start_on_read:
+                    pred_end_on_read -= 3
+                else:
+                    pred_end_on_read = min(read_length, pred_end_on_read + 3)
             alt_codon = random.choice(['GTG', 'TTG'])
-            if 0 <= pos <= len(read_seq) - 3:
-                read_seq = insert_codon_at_position(read_seq, pos, alt_codon)
-                expected['pred_start_codon'] = alt_codon
+            read_seq = set_start_codon(read_seq, pred_start_on_read, pred_end_on_read, alt_codon)
+            expected['pred_start_codon'] = alt_codon
             expected['should_overlap_start'] = True
             expected['expected_answers'] = ['correct direction', 'alternative start', 'correct frame']
             return (pred_start_on_read, pred_end_on_read, default_pred_strand, read_seq, expected)
 
     if scenario == 'incorrect_start':
-        if category in (('+', '+'), ('+', '-')) and read_start <= cds_start:
+        if read_captures_start:
             # place an out-of-frame start by offsetting a base or two from true start
-            pstart, pend = map_cds_coord_to_pred(cds_start, 'start', 120, default_pred_strand)
+            pstart, pend = make_boundary_prediction(gene_start_coord, 'start', 120)
             offset = random.choice([1, 2])
-            pred_start_on_read = pstart + offset
+            if default_pred_strand == '+':
+                pstart = min(read_length, pstart + offset)
+            else:
+                pend = max(pstart, pend - offset)
             expected['should_overlap_start'] = True
             expected['expected_answers'] = ['correct direction', 'incorrect start', 'incorrect frame']
-            return (pred_start_on_read, min(read_length, pred_start_on_read + 150 - 1), default_pred_strand, read_seq, expected)
+            return (pstart, pend, default_pred_strand, read_seq, expected)
 
     if scenario == 'middle':
-        if not (read_start <= cds_start or read_end >= cds_end):
+        if not (read_captures_start or read_captures_stop):
             pred_start_on_read = random.randint(1, max(1, read_length - 100))
             pred_end_on_read = min(read_length, pred_start_on_read + 100)
             expected['is_middle_only'] = True
@@ -238,7 +274,7 @@ def generate_prediction(read_start, read_end, read_strand, cds_start, cds_end, c
     if scenario == 'wrong_direction':
         pred_start_on_read = random.randint(1, max(1, read_length - 100))
         pred_end_on_read = min(read_length, pred_start_on_read + 100)
-        pred_strand = '-' if read_strand == '+' else '+'
+        pred_strand = '-' if default_pred_strand == '+' else '+'
         expected['expected_answers'] = ['incorrect direction']
         return (pred_start_on_read, pred_end_on_read, pred_strand, read_seq, expected)
 
@@ -322,14 +358,11 @@ def main():
     args = parser.parse_args()
     random.seed(args.seed)
 
-    # strand mode controls whether CDS/read strands are generated on both strands
-    global STRAND_MODE
-    STRAND_MODE = args.strand_mode
-
     outdir = Path(args.output_dir)
     outdir.mkdir(parents=True, exist_ok=True)
 
-    cds_features = generate_cds_features(num_cds=args.num_cds)
+    allow_strand_flip = args.strand_mode == 'mixed'
+    cds_features = generate_cds_features(num_cds=args.num_cds, strand_mode=args.strand_mode)
 
     bed_entries = []
     gff_predictions = []
@@ -349,9 +382,9 @@ def main():
         scenario_counts[pred_scenario] += 1
 
         if pred_scenario in ['correct_start', 'alternative_start', 'incorrect_start']:
-            mapping_scenario = 'left_overhang'
+            mapping_scenario = 'left_overhang' if cds_strand == '+' else 'right_overhang'
         elif pred_scenario == 'correct_stop':
-            mapping_scenario = 'right_overhang'
+            mapping_scenario = 'right_overhang' if cds_strand == '+' else 'left_overhang'
         elif pred_scenario == 'middle':
             mapping_scenario = 'middle'
         else:
@@ -369,7 +402,9 @@ def main():
                 frag_len = single_len * 2 + 1
 
             # map a fragment (using existing helper) then derive mate positions
-            frag_start, frag_end, frag_strand = generate_read_mapping(cds_start, cds_end, cds_strand, frag_len, mapping_scenario)
+            frag_start, frag_end, frag_strand = generate_read_mapping(
+                cds_start, cds_end, cds_strand, frag_len, mapping_scenario, allow_strand_flip=allow_strand_flip
+            )
             fragment_seq = generate_sequence(frag_end - frag_start + 1, args.gc_content)
 
             # read 1 at fragment start, read 2 at fragment end
@@ -439,7 +474,9 @@ def main():
         else:
             # single-read behavior (backwards-compatible): args.read_length is read length
             read_length = args.read_length
-            read_start, read_end, read_strand = generate_read_mapping(cds_start, cds_end, cds_strand, read_length, mapping_scenario)
+            read_start, read_end, read_strand = generate_read_mapping(
+                cds_start, cds_end, cds_strand, read_length, mapping_scenario, allow_strand_flip=allow_strand_flip
+            )
             read_name = f"read_{read_idx:06d}"
             read_seq_length = read_end - read_start + 1
             read_seq = generate_sequence(read_seq_length, args.gc_content)
@@ -482,14 +519,17 @@ def main():
     bed_file = outdir / f"{args.output_prefix}_intersect.bed"
     gff_file = outdir / f"{args.output_prefix}_predictions.gff"
     validation_file = outdir / f"{args.output_prefix}_validation.csv"
+    written_bed_file = str(bed_file) + ('.gz' if args.gzip else '')
+    written_gff_file = str(gff_file) + ('.gz' if args.gzip else '')
+    written_validation_file = str(validation_file) + ('.gz' if args.gzip else '')
 
-    write_intersect_bed(str(bed_file) + ('.gz' if args.gzip else ''), bed_entries, gzip_out=args.gzip)
-    write_predictions_gff(str(gff_file) + ('.gz' if args.gzip else ''), gff_predictions, gzip_out=args.gzip)
-    write_validation_csv(str(validation_file) + ('.gz' if args.gzip else ''), validation_data, gzip_out=args.gzip)
+    write_intersect_bed(written_bed_file, bed_entries, gzip_out=args.gzip)
+    write_predictions_gff(written_gff_file, gff_predictions, gzip_out=args.gzip)
+    write_validation_csv(written_validation_file, validation_data, gzip_out=args.gzip)
 
-    print(f"Wrote {len(bed_entries)} BED entries to {bed_file}")
-    print(f"Wrote {len(gff_predictions)} predictions to {gff_file}")
-    print(f"Wrote {len(validation_data)} validation rows to {validation_file}")
+    print(f"Wrote {len(bed_entries)} BED entries to {written_bed_file}")
+    print(f"Wrote {len(gff_predictions)} predictions to {written_gff_file}")
+    print(f"Wrote {len(validation_data)} validation rows to {written_validation_file}")
     print("Scenario distribution:")
     for s, c in scenario_counts.items():
         print(f"  {s}: {c}")

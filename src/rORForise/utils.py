@@ -1,8 +1,6 @@
 import os
 import gzip
 
-rORForise_VERSION = "v0.0.4"
-
 
 def reverse_complement(seq):
     complement = {'A': 'T', 'T': 'A', 'G': 'C', 'C': 'G', 'N': 'N'}

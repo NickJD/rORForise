@@ -119,9 +119,10 @@ def split_genome(sequences, cds_annotations, chunk_size=150, overlap=20,
 
             # Find overlapping CDS annotations
             overlapping_cds = []
+            read_start = chunk_start + 1
+            read_end = chunk_end
             for cds_start, cds_end, cds_strand, cds_attrs in chrom_cds:
-                # Check if chunk overlaps with CDS
-                if chunk_start < cds_end and chunk_end > cds_start:
+                if read_start <= cds_end and read_end >= cds_start:
                     overlapping_cds.append((cds_start, cds_end, cds_strand, cds_attrs))
 
             read_name = f"read_{read_counter:06d}"
@@ -339,7 +340,7 @@ Examples:
     #genome_name = list(sequences.keys())[0] if sequences else "genome"
 
     print("Writing output files...")
-    write_output(options, chunks)
+    write_output(options, chunks, compress_output=options.compress)
 
     if options.output_stats:
         write_statistics(chunks, options.output_stats)

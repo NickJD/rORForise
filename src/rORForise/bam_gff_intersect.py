@@ -1,17 +1,32 @@
-import pysam
 import argparse
+import gzip
 
 try: # Try to import from the package if available
-    from .constants import *
-    from utils import *
+    from .adapters import parse_gff_attributes
+    from .utils import reverse_complement
 except (ModuleNotFoundError, ImportError, NameError, TypeError) as error:
-    from constants import *
-    from utils import *
+    from adapters import parse_gff_attributes
+    from utils import reverse_complement
+
+
+def _open_text(path):
+    return gzip.open(path, 'rt', encoding='utf-8') if str(path).endswith('.gz') else open(path, 'r', encoding='utf-8')
+
+
+def _load_pysam():
+    try:
+        import pysam
+    except ModuleNotFoundError as exc:
+        raise SystemExit(
+            "bam-gff-intersect requires pysam. Install it with `pip install rORForise[bam]` "
+            "or install pysam in the active environment."
+        ) from exc
+    return pysam
 
 def parse_gff(gff_file):
     # Parse GFF file and return a list of tuples.
     gene_list = []
-    with open(gff_file, 'r') as f:
+    with _open_text(gff_file) as f:
         for line in f:
             if line.startswith('#'):
                 continue
@@ -26,8 +41,8 @@ def parse_gff(gff_file):
             score = cols[5]
             strand = cols[6]
             phase = cols[7]
-            attributes = cols[8]
-            gene_id = attributes.split(";")[0].split("=")[1]
+            attributes = parse_gff_attributes(cols[8])
+            gene_id = attributes.get('ID') or attributes.get('Name') or f"{seqid}:{start}-{end}"
             gene_list.append((seqid, source, type, start, end, score, strand, phase, gene_id))
     return gene_list
 
@@ -35,17 +50,21 @@ def process_bam_and_gff(bam_file, gff_file, features, output_file):
     # Process BAM and GFF files and output information in a tab-separated file.
     # Parse GFF file
     gff_data = parse_gff(gff_file)
+    feature_filter = set(features.split(',')) if features else None
 
     # Open BAM file
+    pysam = _load_pysam()
     bam = pysam.AlignmentFile(bam_file, "rb")
 
     # Open output file
     with open(output_file, 'w') as out:
         # Write header
-        out.write("Chromosome\tReadID\tStart\tEnd\tDirection\tMappingQuality\tGeneID\tGeneStart\tGeneEnd\tGeneStrand\tReadSequence\n")
+        out.write("Chromosome\tReadID\tStart\tEnd\tDirection\tMappingQuality\tFeatureType\tGeneStart\tGeneEnd\tGeneStrand\tReadSequence\n")
 
         # Process each read in BAM file
         for read in bam.fetch():
+            if read.is_unmapped:
+                continue
             read_id = read.query_name
             if read.is_paired:
                 if read.is_read1:
@@ -53,13 +72,13 @@ def process_bam_and_gff(bam_file, gff_file, features, output_file):
                 elif read.is_read2:
                     read_id = f"{read_id}/2"
             else:
-                read_id = f"{read_id}/1"  # Or handle single-end reads differently if needed
+                read_id = read.query_name
             chrom = read.reference_name
             start = read.reference_start +1 # bam file starts are base-0
             end = read.reference_end
             read_strand = '-' if read.is_reverse else '+'
             mapq = read.mapping_quality
-            sequence = read.query_sequence
+            sequence = read.query_sequence or ''
             if read_strand == '-':
                 sequence = reverse_complement(sequence)
 
@@ -67,18 +86,11 @@ def process_bam_and_gff(bam_file, gff_file, features, output_file):
 
             for gene in gff_data:
                 (seqid, source, type, gene_start, gene_end, score, strand, phase, gene_id) = gene
-                if features != None:
-                    if any(type in s for s in features.split(',')):
-                        if seqid == chrom and gene_start <= start <= gene_end:
-                            gene_strand = strand
-                            # Write information to output file
-                            out.write(f"{chrom}\t{read_id}\t{start}\t{end}\t{read_strand}\t{mapq}\t{type}\t{gene_start}\t{gene_end}\t{gene_strand}\t{sequence}\n")
-                else:
-                    if seqid == chrom and gene_start <= start <= gene_end:
-                        gene_strand = strand
-                        # Write information to output file
-                        out.write(
-                            f"{chrom}\t{read_id}\t{start}\t{end}\t{read_strand}\t{mapq}\t{type}\t{gene_start}\t{gene_end}\t{gene_strand}\t{sequence}\n")
+                if feature_filter is not None and type not in feature_filter:
+                    continue
+                if seqid == chrom and min(end, gene_end) - max(start, gene_start) + 1 > 0:
+                    gene_strand = strand
+                    out.write(f"{chrom}\t{read_id}\t{start}\t{end}\t{read_strand}\t{mapq}\t{type}\t{gene_start}\t{gene_end}\t{gene_strand}\t{sequence}\n")
 
     # Close BAM file
     bam.close()

@@ -22,7 +22,7 @@ except Exception:
     except Exception:
         # Try to load from src path using Path resolution
         import importlib.util, os
-        repo_root = Path(__file__).resolve().parents[1]  # project root (rORForise/)
+        repo_root = Path(__file__).resolve().parents[2]
         candidate = repo_root / 'src' / 'rORForise' / 'check_pred.py'
         if candidate.exists():
             spec = importlib.util.spec_from_file_location('check_pred', str(candidate))
@@ -72,7 +72,8 @@ def main():
     failures = []
     total = 0
 
-    with open(args.validation, 'r', encoding='utf-8') as f:
+    opener = gzip.open if str(args.validation).endswith('.gz') else open
+    with opener(args.validation, 'rt', encoding='utf-8') as f:
         rdr = csv.DictReader(f)
         for row in rdr:
             total += 1
@@ -128,4 +129,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

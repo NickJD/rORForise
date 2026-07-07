@@ -1,47 +1,73 @@
-import importlib.util
-import os
-import tempfile
 import csv
+import tempfile
+import unittest
+from pathlib import Path
 
-spec = importlib.util.spec_from_file_location('gen','/home/nick/Git/rORForise/src/rORForise/generate_testing_pred.py')
-gen = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(gen)
-
-spec2 = importlib.util.spec_from_file_location('cp','/home/nick/Git/rORForise/src/rORForise/check_pred.py')
-cp = importlib.util.module_from_spec(spec2)
-spec2.loader.exec_module(cp)
-
-
-def test_map_cds_coord_to_pred_forward_and_reverse():
-    # create a simple read that spans genome coords 100..249 (length 150)
-    rs, re = 100, 249
-    # CDS start at 110, end at 200 on + strand
-    cds_start, cds_end, cds_strand = 110, 200, '+'
-    # generate read_seq
-    read_seq = gen.generate_sequence(re - rs + 1)
-
-    # test mapping for + read
-    pstart, pend = gen.map_cds_coord_to_pred if hasattr(gen, 'map_cds_coord_to_pred') else (None,None)
-    # call via generator's wrapper: use a predict invocation
-    pred_start, pred_end, pred_strand, seq, expected = gen.generate_prediction(rs, re, '+', cds_start, cds_end, cds_strand, read_seq, scenario='correct_start')
-    # when read is +, pred_start should be close to cds_start - rs + 1
-    assert pred_start >= 1 and pred_start <= (re - rs + 1)
-
-    # test mapping for reverse read
-    pred_start_r, pred_end_r, pred_strand_r, seqr, expectedr = gen.generate_prediction(rs, re, '-', cds_start, cds_end, cds_strand, read_seq, scenario='correct_start')
-    assert pred_start_r >= 1 and pred_start_r <= (re - rs + 1)
+from rORForise import check_pred as cp
+from rORForise import evaluate as ev
+from rORForise import generate_testing_pred as gen
 
 
-def test_check_pred_consistency_small():
-    # small sanity: generate 10 reads and check check_pred can be called without errors
-    for i in range(10):
-        cds_start, cds_end, cds_strand = 1000 + i*1000, 1000 + i*1000 + 300, '+' if i % 2 == 0 else '-'
-        read_start, read_end, read_strand = gen.generate_read_mapping(cds_start, cds_end, cds_strand, read_length=150, scenario='correct_start')
+def answer_names(answer_set):
+    return {cp.inverse_answers[answer] for answer, _ in answer_set}
+
+
+class GeneratorAndEvaluationTest(unittest.TestCase):
+    def test_strand_mode_controls_cds_strands(self):
+        plus = gen.generate_cds_features(num_cds=10, strand_mode="plus")
+        minus = gen.generate_cds_features(num_cds=10, strand_mode="minus")
+        self.assertEqual({strand for _, _, strand in plus}, {"+"})
+        self.assertEqual({strand for _, _, strand in minus}, {"-"})
+
+    def test_minus_strand_correct_start_generation(self):
+        cds_start, cds_end, cds_strand = 100, 199, "-"
+        read_start, read_end, read_strand = 150, 220, "-"
         read_seq = gen.generate_sequence(read_end - read_start + 1)
-        pred_start, pred_end, pred_strand, seq, expected = gen.generate_prediction(read_start, read_end, read_strand, cds_start, cds_end, cds_strand, read_seq, scenario='correct_start')
-        # call cp.check_pred and ensure returns iterable of tuples
-        answers = cp.check_pred(cds_start, cds_end, cds_strand, read_start, read_end, read_strand, pred_start, pred_end, pred_strand, read_seq)
-        assert hasattr(answers, '__iter__')
-        for a in answers:
-            assert isinstance(a, tuple)
+        pred_start, pred_end, pred_strand, read_seq, _ = gen.generate_prediction(
+            read_start,
+            read_end,
+            read_strand,
+            cds_start,
+            cds_end,
+            cds_strand,
+            read_seq,
+            scenario="correct_start",
+        )
 
+        actual = cp.check_pred(
+            cds_start, cds_end, cds_strand,
+            read_start, read_end, read_strand,
+            pred_start, pred_end, pred_strand,
+            read_seq,
+        )
+        self.assertIn("correct start", answer_names(actual))
+
+    def test_evaluation_percentages_do_not_exceed_100_for_simple_case(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            bed = tmp_path / "reads.bed"
+            gff = tmp_path / "preds.gff"
+            out = tmp_path / "out"
+
+            read_seq = "C" * 18
+            bed.write_text(
+                "\t".join([
+                    "chrom", "read_name", "read_start", "read_end", "read_strand",
+                    "score", "feature_type", "cds_start", "cds_end", "cds_strand",
+                    "read_sequence",
+                ]) + "\n" +
+                "\t".join(["chr1", "read1", "95", "112", "+", ".", "CDS", "100", "108", "+", read_seq]) + "\n",
+                encoding="utf-8",
+            )
+            gff.write_text("##gff-version 3\nread1\tTest\tCDS\t9\t14\t.\t+\t0\tID=pred1\n", encoding="utf-8")
+
+            _, preds = ev.read_preds(gff, out, "case")
+            ev.evaluate(bed, preds, 0.5, out, "case", overlap_threshold=1)
+
+            with (out / "case_detailed_results.csv").open(newline="", encoding="utf-8") as fh:
+                for row in csv.DictReader(fh):
+                    self.assertLessEqual(float(row["percentage"]), 100.0, row)
+
+
+if __name__ == "__main__":
+    unittest.main()

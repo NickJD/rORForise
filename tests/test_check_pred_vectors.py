@@ -1,30 +1,52 @@
-import importlib.util
-spec = importlib.util.spec_from_file_location('cp','/home/nick/Git/rORForise/src/rORForise/check_pred.py')
-cp = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(cp)
+import unittest
 
-# deterministic vectors: each is (cds_open, cds_close, cds_dir, read_open, read_close, read_dir, pred_start, pred_end, pred_dir, read_seq, expected_answer_names)
-VECTORS = [
-    # category ('+','+','+'): read covers cds start and stop; pred aligns exactly to start..stop
-    (100, 300, '+', 90, 310, '+', 11, 211, '+', 'A'*211, ['correct direction','correct start','correct stop','correct frame']),
-    # category ('+','-','-'): reverse read mapping; pred on '-' with appropriate coords gives correct start/stop
-    (1000, 1200, '+', 990, 1210, '-', 11, 211, '-', 'A'*121, ['correct direction']),
-    # category ('-','+','-'): cds on minus, read on plus, pred on -
-    (2000, 2200, '-', 1990, 2210, '+', 11, 211, '-', 'A'*221, ['correct direction']),
-    # category ('-','-','+')
-    (3000, 3200, '-', 2990, 3210, '-', 11, 211, '+', 'A'*221, ['correct direction']),
-]
+from rORForise import check_pred as cp
 
 
-def lookup_names(ans_set):
-    return set(cp.inverse_answers[a] for a,_ in ans_set)
+def names(answer_set):
+    return {cp.inverse_answers[answer] for answer, _ in answer_set}
 
 
-def test_vectors():
-    for vec in VECTORS:
-        cds_open, cds_close, cds_dir, read_open, read_close, read_dir, pred_start, pred_end, pred_dir, read_seq, expect_names = vec
-        answers = cp.check_pred(cds_open, cds_close, cds_dir, read_open, read_close, read_dir, pred_start, pred_end, pred_dir, read_seq)
-        names = lookup_names(answers)
-        for n in expect_names:
-            assert n in names
+def seq_with_codons(length, inserts):
+    seq = ["C"] * length
+    for start_1based, codon in inserts.items():
+        idx = start_1based - 1
+        seq[idx:idx + 3] = list(codon)
+    return "".join(seq)
 
+
+class CheckPredVectorsTest(unittest.TestCase):
+    def assert_answers_include(self, actual, expected):
+        missing = set(expected) - names(actual)
+        self.assertFalse(missing, f"Missing answers: {sorted(missing)} from {sorted(names(actual))}")
+
+    def test_plus_read_plus_prediction_exact_boundaries(self):
+        read_seq = seq_with_codons(18, {6: "ATG", 12: "TAA"})
+        actual = cp.check_pred(100, 108, "+", 95, 112, "+", 6, 14, "+", read_seq)
+        self.assert_answers_include(actual, ["correct direction", "correct start", "correct stop", "correct frame"])
+
+    def test_plus_cds_reverse_read_exact_boundaries(self):
+        actual = cp.check_pred(100, 108, "+", 95, 112, "-", 5, 13, "-", "C" * 18)
+        self.assert_answers_include(actual, ["correct direction", "correct start", "correct stop", "correct frame"])
+
+    def test_minus_cds_forward_read_exact_boundaries(self):
+        read_seq = seq_with_codons(18, {6: "TTA", 12: "CAT"})
+        actual = cp.check_pred(100, 108, "-", 95, 112, "+", 6, 14, "-", read_seq)
+        self.assert_answers_include(actual, ["correct direction", "correct start", "correct stop", "correct frame"])
+
+    def test_minus_cds_reverse_read_exact_boundaries(self):
+        actual = cp.check_pred(100, 108, "-", 95, 112, "-", 5, 13, "+", "C" * 18)
+        self.assert_answers_include(actual, ["correct direction", "correct start", "correct stop", "correct frame"])
+
+    def test_wrong_prediction_strand_is_incorrect_direction(self):
+        actual = cp.check_pred(100, 108, "+", 95, 112, "+", 6, 14, "-", "C" * 18)
+        self.assertEqual(names(actual), {"incorrect direction"})
+
+    def test_in_frame_noncanonical_start_is_incorrect_start(self):
+        read_seq = seq_with_codons(18, {9: "CCC"})
+        actual = cp.check_pred(100, 108, "+", 95, 112, "+", 9, 14, "+", read_seq)
+        self.assert_answers_include(actual, ["correct direction", "correct frame", "incorrect start"])
+
+
+if __name__ == "__main__":
+    unittest.main()

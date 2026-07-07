@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools", "wheel", "levenshtein"]
+requires = ["setuptools>=61", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -22,6 +22,12 @@ dependencies = [
 
 ]
 
+[project.optional-dependencies]
+bam = ["pysam>=0.24"]
+test = ["pytest>=8"]
+viz = ["matplotlib>=3.8", "jinja2>=3.1"]
+benchmark = ["matplotlib>=3.8", "jinja2>=3.1"]
+
 [project.urls]
 Homepage = "https://github.com/NickJD/rORForise"
 "Bug Tracker" = "https://github.com/NickJD/rORForise/issues"
@@ -29,6 +35,10 @@ Homepage = "https://github.com/NickJD/rORForise"
 [project.scripts]
     rORForise = "rORForise.rORForise:main"
     bam-gff-intersect = "rORForise.bam_gff_intersect:main"
+    rORForise-compare-tools = "rORForise.compare_tools:main"
+    rORForise-generate-testing-pred = "rORForise.generate_testing_pred:main"
+    rORForise-validate-generator = "rORForise.validate_generator:main"
+    rORForise-benchmark = "rORForise.benchmark:main"
 
 
 [tool.setuptools]
@@ -41,6 +51,4 @@ include = ["rORForise*"]
 [tool.setuptools.package-data]
 rORForise = [
 ]
-
-
 

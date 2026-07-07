@@ -4,6 +4,7 @@ import os
 import gzip
 import math
 from datetime import datetime
+from pathlib import Path
 
 
 try:
@@ -24,6 +25,32 @@ except Exception:
             cp = mod
         else:
             raise
+
+try:
+    from .adapters import (
+        prediction_overlaps_cds,
+        predictions_to_dict,
+        read_bed_records,
+        read_gff_predictions,
+    )
+except Exception:
+    try:
+        from adapters import (
+            prediction_overlaps_cds,
+            predictions_to_dict,
+            read_bed_records,
+            read_gff_predictions,
+        )
+    except Exception:
+        import importlib.util
+        candidate = Path(__file__).resolve().parent / 'adapters.py'
+        spec = importlib.util.spec_from_file_location('rORForise_adapters', str(candidate))
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        prediction_overlaps_cds = mod.prediction_overlaps_cds
+        predictions_to_dict = mod.predictions_to_dict
+        read_bed_records = mod.read_bed_records
+        read_gff_predictions = mod.read_gff_predictions
 
 
 nucleotides = ['A', 'C', 'G', 'T']
@@ -60,14 +87,13 @@ def write_codon_analysis_csv(codon_counts, gc_prob, output_dir, output_prefix):
         cp.answers['middle incorrect stop']: 'middle incorrect stop'
     }
 
-    if not codon_counts:
-        print("No codon data available for analysis")
-        return
-
     summary_file = os.path.join(output_dir, f"{output_prefix}_codon_summary.csv")
     with open(summary_file, 'w', newline='') as f:
         writer = csv.writer(f)
         writer.writerow(['answer_type', 'codon', 'observed', 'expected', 'obs_exp_ratio'])
+
+        if not codon_counts:
+            return
 
         for answer_code, answer_name in codon_answer_types.items():
             if answer_code in codon_counts:
@@ -129,15 +155,19 @@ def write_summary_csv(stats, output_dir, output_prefix):
         writer.writerow(['reads_good_overlap', stats['reads_good_overlap']])
         writer.writerow(['reads_good_overlap_with_preds', stats['reads_good_overlap_with_preds']])
         writer.writerow(['total_predictions', stats['total_predictions']])
+        writer.writerow(['inspected_prediction_cds_comparisons', stats['inspected_predictions']])
         writer.writerow(['on_target_predictions', stats['on_target_predictions']])
+        writer.writerow(['total_cds_mappings', stats['total_cds_mappings']])
+        writer.writerow(['cds_mappings_good_overlap', stats['cds_mappings_good_overlap']])
+        writer.writerow(['cds_mappings_good_overlap_with_preds', stats['cds_mappings_good_overlap_with_preds']])
         writer.writerow(['shared_reads', stats['shared_reads']])
         writer.writerow(['shared_predictions', stats['shared_predictions']])
 
         if stats['reads_good_overlap'] > 0:
             writer.writerow(['prediction_coverage',
                              f"{stats['reads_good_overlap_with_preds'] / stats['reads_good_overlap']:.3f}"])
-        writer.writerow(['avg_preds_per_read',
-                         f"{stats['total_predictions'] / stats['total_number_of_reads']:.2f}"])
+        avg_preds = stats['total_predictions'] / stats['total_number_of_reads'] if stats['total_number_of_reads'] else 0
+        writer.writerow(['avg_preds_per_read', f"{avg_preds:.2f}"])
 
 
 def write_prediction_length_csv(pred_length_distn, output_dir, output_prefix):
@@ -245,15 +275,21 @@ def write_detailed_results_csv(answer_counts, output_dir, output_prefix, stats, 
             answer_name = cp.inverse_answers[answer_code]
             count = answer_counts.get(answer_code, 0)
 
-            if answer_code in start_only_answer_types:
-                # start-related answers may also appear when a prediction is middle-only
-                denominator = max(context_counts.get('overlaps_start', 0), context_counts.get('middle_only', 0))
-                context = 'predictions overlapping CDS start or in CDS middle'
+            if answer_code == cp.answers['correct start']:
+                denominator = context_counts.get('overlaps_start', 0)
+                context = 'inspected predictions whose reads capture the CDS start'
+
+            elif answer_code == cp.answers['correct stop']:
+                denominator = context_counts.get('overlaps_stop', 0)
+                context = 'inspected predictions whose reads capture the CDS stop'
+
+            elif answer_code in start_only_answer_types:
+                denominator = context_counts.get('overlaps_start', 0) + context_counts.get('middle_only', 0)
+                context = 'inspected predictions eligible for start or middle-start assessment'
 
             elif answer_code in stop_only_answer_types:
-                # stop-related answers may also appear when a prediction is middle-only
-                denominator = max(context_counts.get('overlaps_stop', 0), context_counts.get('middle_only', 0))
-                context = 'predictions overlapping CDS stop or in CDS middle'
+                denominator = context_counts.get('overlaps_stop', 0) + context_counts.get('middle_only', 0)
+                context = 'inspected predictions eligible for stop or middle-stop assessment'
 
             elif answer_code in middle_start_answer_types:
                 denominator = context_counts.get('middle_only', 0)
@@ -268,32 +304,44 @@ def write_detailed_results_csv(answer_counts, output_dir, output_prefix, stats, 
                 context = 'predictions in CDS middle only'
 
             elif answer_code in frame_answer_types:
-                denominator = stats.get('on_target_predictions', 0)
-                context = 'all on-target predictions'
+                denominator = stats.get('inspected_predictions', 0)
+                context = 'all inspected prediction/CDS comparisons'
 
             elif answer_code in direction_answer_types:
-                denominator = stats.get('on_target_predictions', 0)
-                context = 'all on-target predictions'
+                denominator = stats.get('inspected_predictions', 0)
+                context = 'all inspected prediction/CDS comparisons'
 
             elif answer_code in boundary_answer_types:
-                denominator = stats.get('on_target_predictions', 0)
-                context = 'all on-target predictions'
+                denominator = stats.get('inspected_predictions', 0)
+                context = 'all inspected prediction/CDS comparisons'
 
             elif answer_code in overlap_answer_types:
-                denominator = stats.get('total_cds_aligned_reads', 0)
-                context = 'all CDS-aligned reads'
+                denominator = stats.get('total_cds_mappings', 0)
+                context = 'all CDS mappings'
 
             else:
-                denominator = stats.get('on_target_predictions', 0)
-                context = 'all on-target predictions (uncategorised)'
+                denominator = stats.get('inspected_predictions', 0)
+                context = 'all inspected prediction/CDS comparisons (uncategorised)'
 
             percentage = (count / denominator * 100) if denominator > 0 else 0
             writer.writerow([answer_name, count, f"{percentage:.2f}", denominator, context])
 
 
-def evaluate(intersect_bed_filename, preds, gc_prob, output_dir, output_prefix="orf_evaluation", overlap_threshold=60, verbose=False, output_format='csv'):
+def evaluate(
+    intersect_bed_filename,
+    preds,
+    gc_prob,
+    output_dir,
+    output_prefix="orf_evaluation",
+    overlap_threshold=60,
+    verbose=False,
+    output_format='csv',
+    read_sequences=None,
+):
     number_of_CDS_mappings_with_predictions = 0
+    good_overlap_with_predictions_read_names = set()
     number_of_on_target_preds = 0
+    number_of_inspected_preds = 0
 
     track_preds = collections.defaultdict(list)
 
@@ -310,92 +358,79 @@ def evaluate(intersect_bed_filename, preds, gc_prob, output_dir, output_prefix="
         'middle_only': 0
     }
 
-    # Read intersect BED (supports gz)
-    opener = (gzip.open if str(intersect_bed_filename).endswith('.gz') else open)
-    with opener(intersect_bed_filename, 'rt', encoding='utf-8') as f:
-        csvr = csv.reader(f, delimiter='\t')
-        try:
-            header = next(csvr)
-        except StopIteration:
-            header = []
-        read_num = 0
-        unique_read_names = set()
-        for bed_row in csvr:
-            read_num += 1
-            if len(bed_row) < 11:
-                continue
-            # count each read once regardless of multiple BED rows
-            read_name_all = bed_row[1]
-            unique_read_names.add(read_name_all)
-            if bed_row[6] == 'CDS':
-                read_start = int(bed_row[2])
-                read_end = int(bed_row[3])
-                read_name = bed_row[1]
-                read_dir = bed_row[4]
-                seen_read_names.add(read_name)
-                cds_start = int(bed_row[7])
-                cds_end = int(bed_row[8])
+    records = read_bed_records(intersect_bed_filename, read_sequences=read_sequences)
+    unique_read_names = {record.read_name for record in records}
+    cds_records = [record for record in records if record.feature_type == 'CDS']
+    good_overlap_cds_mappings = 0
 
-                if min(read_end, cds_end) - max(read_start, cds_start) + 1 < overlap_threshold:
-                    answer_counts[cp.answers["not enough read-CDS overlap"]] += 1
-                    if read_name not in preds:
-                        reads_without_predictions.add(read_name)
-                else:
-                    good_overlap_read_names.add(read_name)
+    for record in cds_records:
+        read_name = record.read_name
+        seen_read_names.add(read_name)
 
-                    if read_name in preds:
-                        cds_dir = bed_row[9]
-                        read_seq = bed_row[10]
-                        number_of_CDS_mappings_with_predictions += 1
+        if record.overlap_bp < overlap_threshold:
+            answer_counts[cp.answers["not enough read-CDS overlap"]] += 1
+            if read_name not in preds:
+                reads_without_predictions.add(read_name)
+            continue
 
-                        for prediction_name, (pred_start, pred_end, pred_dir) in preds[read_name].items():
-                            number_of_on_target_preds += 1
+        good_overlap_cds_mappings += 1
+        good_overlap_read_names.add(read_name)
 
-                            if cds_dir == '+' and read_dir == '+':
-                                read_captures_cds_start = read_start <= cds_start
-                                read_captures_cds_end = read_end >= cds_end
-                            elif cds_dir == '+' and read_dir == '-':
-                                read_captures_cds_start = read_start <= cds_start
-                                read_captures_cds_end = read_end >= cds_end
-                            elif cds_dir == '-' and read_dir == '+':
-                                read_captures_cds_start = read_end >= cds_end
-                                read_captures_cds_end = read_start <= cds_start
-                            elif cds_dir == '-' and read_dir == '-':
-                                read_captures_cds_start = read_end >= cds_end
-                                read_captures_cds_end = read_start <= cds_start
-                            else:
-                                read_captures_cds_start = False
-                                read_captures_cds_end = False
+        if read_name not in preds:
+            reads_without_predictions.add(read_name)
+            continue
 
-                            if read_captures_cds_start:
-                                context_counts['overlaps_start'] += 1
-                            if read_captures_cds_end:
-                                context_counts['overlaps_stop'] += 1
-                            if not read_captures_cds_start and not read_captures_cds_end:
-                                context_counts['middle_only'] += 1
+        number_of_CDS_mappings_with_predictions += 1
+        good_overlap_with_predictions_read_names.add(read_name)
 
-                            answer_details = cp.check_pred(cds_start, cds_end, cds_dir, read_start, read_end, read_dir,
-                                                           pred_start, pred_end, pred_dir, read_seq)
-                            track_preds[read_name].append((pred_start, pred_end, answer_details))
+        for prediction_name, (pred_start, pred_end, pred_dir) in preds[read_name].items():
+            number_of_inspected_preds += 1
+            if prediction_overlaps_cds(record, pred_start, pred_end):
+                number_of_on_target_preds += 1
 
-                            for (answer, codon) in answer_details:
-                                answer_counts[answer] += 1
-                                if codon is not None:
-                                    if answer not in codon_counts:
-                                        codon_counts[answer] = collections.defaultdict(int)
-                                    codon_counts[answer][codon] += 1
+            read_captures_cds_start = record.captures_cds_start
+            read_captures_cds_end = record.captures_cds_end
 
-                    else:
-                        reads_without_predictions.add(read_name)
+            if read_captures_cds_start:
+                context_counts['overlaps_start'] += 1
+            if read_captures_cds_end:
+                context_counts['overlaps_stop'] += 1
+            if not read_captures_cds_start and not read_captures_cds_end:
+                context_counts['middle_only'] += 1
+
+            answer_details = cp.check_pred(
+                record.cds_start,
+                record.cds_end,
+                record.cds_strand,
+                record.read_start,
+                record.read_end,
+                record.read_strand,
+                pred_start,
+                pred_end,
+                pred_dir,
+                record.read_seq,
+            )
+            track_preds[read_name].append((pred_start, pred_end, answer_details))
+
+            for (answer, codon) in answer_details:
+                answer_counts[answer] += 1
+                if codon is not None:
+                    if answer not in codon_counts:
+                        codon_counts[answer] = collections.defaultdict(int)
+                    codon_counts[answer][codon] += 1
 
     stats = {
         'total_number_of_reads': len(unique_read_names),
         'total_cds_aligned_reads': len(seen_read_names),
         'reads_without_predictions': len(reads_without_predictions),
         'reads_good_overlap': len(good_overlap_read_names),
-        'reads_good_overlap_with_preds': number_of_CDS_mappings_with_predictions,
+        'reads_good_overlap_with_preds': len(good_overlap_with_predictions_read_names),
         'total_predictions': sum(len(pred_list) for pred_list in preds.values()),
-        'on_target_predictions': number_of_on_target_preds
+        'inspected_predictions': number_of_inspected_preds,
+        'on_target_predictions': number_of_on_target_preds,
+        'total_cds_mappings': len(cds_records),
+        'cds_mappings_good_overlap': good_overlap_cds_mappings,
+        'cds_mappings_good_overlap_with_preds': number_of_CDS_mappings_with_predictions,
     }
 
     shared_reads = set(preds.keys()).intersection(seen_read_names)
@@ -431,7 +466,7 @@ def evaluate(intersect_bed_filename, preds, gc_prob, output_dir, output_prefix="
     def pct(num, den):
         if den <= 0:
             return 'N/A'
-        return f"{(num / den * 100):.1f}%"
+        return f"{(num / den * 100):.2f}%"
 
     metrics['start'] = (correct_start, start_den, pct(correct_start, start_den))
     metrics['stop'] = (correct_stop, stop_den, pct(correct_stop, stop_den))
@@ -465,31 +500,14 @@ def evaluate(intersect_bed_filename, preds, gc_prob, output_dir, output_prefix="
 
 
 def read_preds(predictions_gff, output_dir, output_prefix="orf_evaluation", verbose=False):
-    preds = {}
-    total_preds = 0
+    os.makedirs(output_dir, exist_ok=True)
     pred_length_distn = collections.defaultdict(int)
+    predictions = read_gff_predictions(predictions_gff)
+    preds = predictions_to_dict(predictions)
+    total_preds = len(predictions)
 
-    opener = (gzip.open if str(predictions_gff).endswith('.gz') else open)
-    with opener(predictions_gff, 'rt', encoding='utf-8') as f:
-        for line in f:
-            line = line.strip()
-            if not line or line.startswith('#'):
-                continue
-            row = line.split('\t')
-            if len(row) < 9:
-                continue
-            read_name = row[0].lstrip('@')
-            pred_start = int(row[3])
-            pred_end = int(row[4])
-            pred_dir = row[6]
-            attr = row[8]
-            prediction_name = attr.replace('ID=', '').split(';')[0].replace('@', '')
-
-            if read_name not in preds:
-                preds[read_name] = {}
-            preds[read_name][prediction_name] = (pred_start, pred_end, pred_dir)
-            total_preds += 1
-            pred_length_distn[pred_end - pred_start + 1] += 1
+    for prediction in predictions:
+        pred_length_distn[prediction.end - prediction.start + 1] += 1
 
     write_prediction_length_csv(pred_length_distn, output_dir, output_prefix)
 

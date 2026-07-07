@@ -5,7 +5,7 @@ import importlib.util
 from pathlib import Path
 import csv
 
-# robust adapters import: only used here for loading BED map (not for GFF->read mapping)
+# robust adapters import
 try:
     from rORForise import adapters
 except Exception:
@@ -38,20 +38,22 @@ except Exception:
             raise
 
 
-def run_eval_for_preds(bed, pred_gff, outdir, prefix, gc_prob):
-    # read_preds returns (total_preds, preds_dict)
-    total_preds, preds = ev.read_preds(pred_gff, outdir, prefix, verbose=False)
-
-    # run evaluate (expects preds to be the read->preds dict)
-    ev.evaluate(bed, preds, gc_prob, outdir, output_prefix=prefix, overlap_threshold=60, verbose=False)
+def run_eval_for_preds(bed, pred_gff, outdir, prefix, gc_prob, coordinate_type, overlap_threshold):
+    preds = adapters.gff_genome_to_read_preds(pred_gff, bed, coordinate_type=coordinate_type)
+    ev.evaluate(bed, preds, gc_prob, outdir, output_prefix=prefix, overlap_threshold=overlap_threshold, verbose=False)
+    return preds
 
 
 def main():
     p = argparse.ArgumentParser()
     p.add_argument('-b','--bed', required=True)
     p.add_argument('-o','--outdir', required=True)
-    p.add_argument('--pred', action='append', help='toolname=predictions.gff (read-level GFF required)', required=True)
+    p.add_argument('--pred', action='append', help='toolname=predictions.gff', required=True)
     p.add_argument('--gc_prob', type=float, default=0.32, help='GC probability for evaluation (default: 0.32)')
+    p.add_argument('--coords', choices=['auto', 'read', 'genome'], default='auto',
+                   help='Coordinate system used by prediction GFFs (default: auto)')
+    p.add_argument('-l', '--overlap_threshold', type=int, default=60,
+                   help='Minimum read/CDS overlap for inspection (default: 60)')
     args = p.parse_args()
 
     os.makedirs(args.outdir, exist_ok=True)
@@ -62,8 +64,7 @@ def main():
         name, path = pred.split('=', 1)
         prefix = f"cmp_{name}"
         print(f"Running evaluation for tool '{name}' -> {path}")
-        # This will call ev.read_preds internally and run evaluate
-        run_eval_for_preds(args.bed, path, args.outdir, prefix, args.gc_prob)
+        preds = run_eval_for_preds(args.bed, path, args.outdir, prefix, args.gc_prob, args.coords, args.overlap_threshold)
 
         # read the context accuracy file produced by evaluate
         metrics_file = os.path.join(args.outdir, f"{prefix}_context_accuracy.csv")
@@ -75,38 +76,15 @@ def main():
         else:
             print(f"Warning: expected metrics file not found for {name}: {metrics_file}")
 
-        # Load predictions from read-level GFF using evaluate.read_preds
-        try:
-            total_loaded, preds = ev.read_preds(path, args.outdir, prefix, verbose=False)
-        except Exception as e:
-            print(f"Error reading predictions for {name}: {e}")
-            preds = {}
-            total_loaded = 0
-
         total_preds_mapped = sum(len(v) for v in preds.values())
         both = start_only = stop_only = middle_only = 0
         for read, pd in preds.items():
             if read not in bed_map:
                 continue
             be = bed_map[read][0]
-            rs = be['read_start']; re = be['read_end']
-            cds_s = be['cds_start']; cds_e = be['cds_end']
-            read_dir = be['read_strand']; cds_dir = be['cds_strand']
             for pid, (ps, pe, pstr) in pd.items():
-                if cds_dir == '+' and read_dir == '+':
-                    cap_start = rs <= cds_s
-                    cap_stop = re >= cds_e
-                elif cds_dir == '+' and read_dir == '-':
-                    cap_start = rs <= cds_s
-                    cap_stop = re >= cds_e
-                elif cds_dir == '-' and read_dir == '+':
-                    cap_start = re >= cds_e
-                    cap_stop = rs <= cds_s
-                elif cds_dir == '-' and read_dir == '-':
-                    cap_start = re >= cds_e
-                    cap_stop = rs <= cds_s
-                else:
-                    cap_start = cap_stop = False
+                cap_start = be.captures_cds_start
+                cap_stop = be.captures_cds_end
 
                 if cap_start and cap_stop:
                     both += 1
@@ -183,4 +161,3 @@ def main():
 
 if __name__ == '__main__':
      main()
-
